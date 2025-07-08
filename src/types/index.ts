@@ -115,3 +115,4 @@ export interface Flashcard {
   pronunciation?: string;
   difficulty: 'easy' | 'medium' | 'hard';
   createdAt: number;
+}
