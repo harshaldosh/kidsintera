@@ -7,7 +7,7 @@ import './Flashcards.css';
 const FlashcardSingle: React.FC = () => {
   const { categoryId, flashcardId } = useParams<{ categoryId: string; flashcardId: string }>();
   const navigate = useNavigate();
-  const { getCategoryById, getFlashcardById, getFlashcardsByCategory, playSound, soundEnabled, spellEnabled } = useFlashcards();
+  const { getCategoryById, getFlashcardById, getFlashcardsByCategory, playSound, soundEnabled, spellEnabled, speakSpelling } = useFlashcards();
   
   const category = categoryId ? getCategoryById(categoryId) : undefined;
   const flashcard = flashcardId ? getFlashcardById(flashcardId) : undefined;
@@ -45,12 +45,25 @@ const FlashcardSingle: React.FC = () => {
   const handlePlaySound = () => {
     if (!soundEnabled) return;
     
-    try {
-      // Try to play the audio file first
-      const audio = new Audio(flashcard.soundUrl);
-      audio.volume = 0.7;
-      audio.play().catch(() => {
-        // If audio fails, use text-to-speech with the actual title
+    if (spellEnabled) {
+      speakSpelling(flashcard.title);
+    } else {
+      try {
+        // Try to play the audio file first
+        const audio = new Audio(flashcard.soundUrl);
+        audio.volume = 0.7;
+        audio.play().catch(() => {
+          // If audio fails, use text-to-speech with the actual title
+          if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(flashcard.title);
+            utterance.rate = 0.7;
+            utterance.pitch = 1.2;
+            utterance.volume = 0.9;
+            speechSynthesis.speak(utterance);
+          }
+        });
+      } catch (error) {
+        // Fallback to text-to-speech if audio creation fails
         if ('speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(flashcard.title);
           utterance.rate = 0.7;
@@ -58,15 +71,6 @@ const FlashcardSingle: React.FC = () => {
           utterance.volume = 0.9;
           speechSynthesis.speak(utterance);
         }
-      });
-    } catch (error) {
-      // Fallback to text-to-speech if audio creation fails
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(flashcard.title);
-        utterance.rate = 0.7;
-        utterance.pitch = 1.2;
-        utterance.volume = 0.9;
-        speechSynthesis.speak(utterance);
       }
     }
   };
@@ -148,7 +152,7 @@ const FlashcardSingle: React.FC = () => {
             style={{ '--category-color': category.color } as React.CSSProperties}
           >
             <Play size={24} />
-            Play Sound
+            {spellEnabled ? 'Spell Word' : 'Play Sound'}
           </button>
         )}
         

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useFlashcards } from '../context/FlashcardContext';
-import { ArrowLeft, Play, Settings, Volume2, VolumeX, Type, TypeIcon, Camera, CameraOff, Eye, EyeOff, Video } from 'lucide-react';
+import { ArrowLeft, Play, Settings, Volume2, VolumeX, Type, TypeIcon, Camera, CameraOff, Eye, EyeOff, Video, RotateCcw, FileText, QrCode } from 'lucide-react';
 import './Flashcards.css';
 
 const Flashcards: React.FC = () => {
@@ -11,15 +11,23 @@ const Flashcards: React.FC = () => {
     soundEnabled,
     spellEnabled,
     cameraDetectionEnabled,
+    cameraFlipped,
+    ocrEnabled,
+    qrCodeEnabled,
     toggleSound,
     toggleSpell,
     toggleCameraDetection,
+    toggleCameraFlip,
+    toggleOCR,
+    toggleQRCode,
     startCameraDetection,
     stopCameraDetection,
     detectedObjects,
     isDetecting,
     modelLoading,
-    cameraFeedElement
+    cameraFeedElement,
+    detectedText,
+    detectedQRCodes
   } = useFlashcards();
 
   return (
@@ -90,46 +98,133 @@ const Flashcards: React.FC = () => {
               onClick={toggleCameraDetection}
             />
           </div>
+          
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-icon" style={{ backgroundColor: ocrEnabled ? '#8b5cf6' : '#d1d5db' }}>
+                {ocrEnabled ? <FileText size={20} color="white" /> : <FileText size={20} color="#6b7280" />}
+              </div>
+              <div className="setting-text">
+                <h4>Text Recognition</h4>
+                <p>Detect text in camera view</p>
+              </div>
+            </div>
+            <div 
+              className={`toggle-switch ${ocrEnabled ? 'active' : ''}`}
+              onClick={toggleOCR}
+            />
+          </div>
+          
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-icon" style={{ backgroundColor: qrCodeEnabled ? '#10b981' : '#d1d5db' }}>
+                {qrCodeEnabled ? <QrCode size={20} color="white" /> : <QrCode size={20} color="#6b7280" />}
+              </div>
+              <div className="setting-text">
+                <h4>QR Code Scanning</h4>
+                <p>Scan QR codes for flashcards</p>
+              </div>
+            </div>
+            <div 
+              className={`toggle-switch ${qrCodeEnabled ? 'active' : ''}`}
+              onClick={toggleQRCode}
+            />
+          </div>
         </div>
         
-        {cameraDetectionEnabled && (
+        {(cameraDetectionEnabled || ocrEnabled || qrCodeEnabled) && (
           <div className="camera-section">
             <div className="camera-controls">
               {!isDetecting ? (
-                <button 
-                  className="camera-button"
-                  onClick={startCameraDetection}
-                  disabled={modelLoading}
-                >
-                  <Camera size={20} />
-                  {modelLoading ? 'Loading AI Model...' : 'Start Camera Detection'}
-                </button>
+                <>
+                  <button 
+                    className="camera-button"
+                    onClick={startCameraDetection}
+                    disabled={modelLoading}
+                  >
+                    <Camera size={20} />
+                    {modelLoading ? 'Loading AI Model...' : 'Start Camera Detection'}
+                  </button>
+                  
+                  <button 
+                    className="camera-flip-button"
+                    onClick={toggleCameraFlip}
+                    title={`Switch to ${cameraFlipped ? 'back' : 'front'} camera`}
+                  >
+                    <RotateCcw size={16} />
+                    {cameraFlipped ? 'Front Cam' : 'Back Cam'}
+                  </button>
+                </>
               ) : (
-                <button 
-                  className="camera-button stop"
-                  onClick={stopCameraDetection}
-                >
-                  <CameraOff size={20} />
-                  Stop Detection
-                </button>
+                <>
+                  <button 
+                    className="camera-button stop"
+                    onClick={stopCameraDetection}
+                  >
+                    <CameraOff size={20} />
+                    Stop Detection
+                  </button>
+                  
+                  <button 
+                    className="camera-flip-button"
+                    onClick={toggleCameraFlip}
+                    title={`Switch to ${cameraFlipped ? 'back' : 'front'} camera`}
+                  >
+                    <RotateCcw size={16} />
+                    {cameraFlipped ? 'Front Cam' : 'Back Cam'}
+                  </button>
+                </>
               )}
               
               <div className={`detection-status ${isDetecting ? 'detecting' : ''}`}>
                 <Eye size={16} />
                 {modelLoading ? 'Loading AI model...' : 
-                 isDetecting ? 'AI is analyzing camera feed...' : 'Camera detection ready'}
+                 isDetecting ? 'AI is analyzing camera feed...' : 'Detection ready'}
               </div>
             </div>
             
-            {detectedObjects.length > 0 && (
+            {(detectedObjects.length > 0 || detectedText.length > 0 || detectedQRCodes.length > 0) && (
               <div className="detected-objects">
-                <h4>Detected Objects:</h4>
-                <div className="objects-list">
-                  {detectedObjects.map((obj, index) => (
-                    <span key={index} className="object-tag">
-                      {obj}
-                    </span>
-                  ))}
+                <h4>Detection Results:</h4>
+                <div className="detection-results">
+                  {detectedObjects.length > 0 && (
+                    <div className="detection-category">
+                      <h5><Eye size={14} /> Objects:</h5>
+                      <div className="objects-list">
+                        {detectedObjects.map((obj, index) => (
+                          <span key={index} className="object-tag">
+                            {obj}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {detectedText.length > 0 && (
+                    <div className="detection-category">
+                      <h5><FileText size={14} /> Text:</h5>
+                      <div className="objects-list">
+                        {detectedText.map((text, index) => (
+                          <span key={index} className="text-tag">
+                            {text}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {detectedQRCodes.length > 0 && (
+                    <div className="detection-category">
+                      <h5><QrCode size={14} /> QR Codes:</h5>
+                      <div className="objects-list">
+                        {detectedQRCodes.map((qr, index) => (
+                          <span key={index} className="qr-tag">
+                            {qr}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -155,7 +250,7 @@ const Flashcards: React.FC = () => {
                   autoPlay
                   muted
                   playsInline
-                  style={{ transform: 'scaleX(-1)' }}
+                  style={{ transform: cameraFlipped ? 'scaleX(-1)' : 'scaleX(1)' }}
                 />
               </div>
             )}

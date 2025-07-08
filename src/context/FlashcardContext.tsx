@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import * as tf from '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import Tesseract from 'tesseract.js';
+import QrScanner from 'qr-scanner';
 
 interface FlashcardContextType {
   categories: FlashcardCategory[];
@@ -16,9 +18,15 @@ interface FlashcardContextType {
   soundEnabled: boolean;
   spellEnabled: boolean;
   cameraDetectionEnabled: boolean;
+  cameraFlipped: boolean;
+  ocrEnabled: boolean;
+  qrCodeEnabled: boolean;
   toggleSound: () => void;
   toggleSpell: () => void;
   toggleCameraDetection: () => void;
+  toggleCameraFlip: () => void;
+  toggleOCR: () => void;
+  toggleQRCode: () => void;
   // Camera detection
   startCameraDetection: () => Promise<void>;
   stopCameraDetection: () => void;
@@ -27,6 +35,11 @@ interface FlashcardContextType {
   modelLoading: boolean;
   cameraFeedElement: HTMLVideoElement | null;
   setCameraFeedElement: (element: HTMLVideoElement | null) => void;
+  // OCR and QR Code
+  detectedText: string[];
+  detectedQRCodes: string[];
+  // Spelling
+  speakSpelling: (word: string) => void;
 }
 
 const FlashcardContext = createContext<FlashcardContextType | undefined>(undefined);
@@ -56,8 +69,25 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return saved ? JSON.parse(saved) : false;
   });
   
+  const [cameraFlipped, setCameraFlipped] = useState(() => {
+    const saved = localStorage.getItem('flashcard_camera_flipped');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  const [ocrEnabled, setOcrEnabled] = useState(() => {
+    const saved = localStorage.getItem('flashcard_ocr_enabled');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  const [qrCodeEnabled, setQrCodeEnabled] = useState(() => {
+    const saved = localStorage.getItem('flashcard_qr_enabled');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
   // Camera detection state
   const [detectedObjects, setDetectedObjects] = useState<string[]>([]);
+  const [detectedText, setDetectedText] = useState<string[]>([]);
+  const [detectedQRCodes, setDetectedQRCodes] = useState<string[]>([]);
   const [isDetecting, setIsDetecting] = useState(false);
   const [modelLoading, setModelLoading] = useState(false);
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
@@ -80,6 +110,18 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     localStorage.setItem('flashcard_camera_enabled', JSON.stringify(cameraDetectionEnabled));
   }, [cameraDetectionEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('flashcard_camera_flipped', JSON.stringify(cameraFlipped));
+  }, [cameraFlipped]);
+
+  useEffect(() => {
+    localStorage.setItem('flashcard_ocr_enabled', JSON.stringify(ocrEnabled));
+  }, [ocrEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('flashcard_qr_enabled', JSON.stringify(qrCodeEnabled));
+  }, [qrCodeEnabled]);
 
   const [categories] = useState<FlashcardCategory[]>([
     {
@@ -447,6 +489,93 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // OCR text detection
+  const detectText = async (videoElement: HTMLVideoElement): Promise<string[]> => {
+    if (!ocrEnabled) return [];
+    
+    try {
+      // Create a canvas to capture the current frame
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return [];
+      
+      canvas.width = videoElement.videoWidth;
+      canvas.height = videoElement.videoHeight;
+      ctx.drawImage(videoElement, 0, 0);
+      
+      // Convert canvas to blob for Tesseract
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      
+      const result = await Tesseract.recognize(imageData, 'eng', {
+        logger: () => {} // Disable logging
+      });
+      
+      const text = result.data.text.trim();
+      if (text) {
+        // Split text into words and filter out short/invalid words
+        const words = text.split(/\s+/).filter(word => 
+          word.length > 2 && /^[a-zA-Z]+$/.test(word)
+        );
+        
+        // Check if any detected words match flashcard titles
+        const matchedWords = words.filter(word => 
+          flashcards.some(card => 
+            card.title.toLowerCase() === word.toLowerCase()
+          )
+        );
+        
+        return matchedWords;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('OCR detection error:', error);
+      return [];
+    }
+  };
+
+  // QR Code detection
+  const detectQRCodes = async (videoElement: HTMLVideoElement): Promise<string[]> => {
+    if (!qrCodeEnabled) return [];
+    
+    try {
+      const result = await QrScanner.scanImage(videoElement, {
+        returnDetailedScanResult: true,
+        highlightScanRegion: false,
+        highlightCodeOutline: false,
+      });
+      
+      if (result && result.data) {
+        // Check if QR code contains a flashcard link or ID
+        const qrData = result.data;
+        
+        // Look for flashcard URLs or IDs in QR code
+        const flashcardMatch = qrData.match(/flashcards\/([^\/]+)\/([^\/\?]+)/);
+        if (flashcardMatch) {
+          const [, categoryId, flashcardId] = flashcardMatch;
+          const flashcard = getFlashcardById(flashcardId);
+          if (flashcard) {
+            return [flashcard.title];
+          }
+        }
+        
+        // Check if QR code contains text that matches a flashcard title
+        const matchedFlashcard = flashcards.find(card => 
+          qrData.toLowerCase().includes(card.title.toLowerCase())
+        );
+        
+        if (matchedFlashcard) {
+          return [matchedFlashcard.title];
+        }
+      }
+      
+      return [];
+    } catch (error) {
+      // QR code not found or error - this is normal
+      return [];
+    }
+  };
+
   const getFlashcardsByCategory = (categoryId: string) => {
     return flashcards.filter(card => card.categoryId === categoryId);
   };
@@ -475,6 +604,32 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const speakSpelling = (word: string) => {
+    if (!soundEnabled || !spellEnabled) return;
+    
+    if ('speechSynthesis' in window) {
+      // First say the word normally
+      const wordUtterance = new SpeechSynthesisUtterance(word);
+      wordUtterance.rate = 0.8;
+      wordUtterance.pitch = 1.1;
+      wordUtterance.volume = 0.8;
+      
+      // Then spell it out letter by letter
+      const letters = word.split('').join(' - ');
+      const spellingUtterance = new SpeechSynthesisUtterance(letters);
+      spellingUtterance.rate = 0.6;
+      spellingUtterance.pitch = 1.0;
+      spellingUtterance.volume = 0.8;
+      
+      speechSynthesis.speak(wordUtterance);
+      
+      // Wait for the word to finish, then spell it
+      setTimeout(() => {
+        speechSynthesis.speak(spellingUtterance);
+      }, (word.length * 100) + 500);
+    }
+  };
+
   const toggleSound = () => {
     setSoundEnabled(prev => !prev);
     toast.success(`Sound ${!soundEnabled ? 'enabled' : 'disabled'}`);
@@ -496,6 +651,21 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     toast.success(`Camera detection ${newValue ? 'enabled' : 'disabled'}`);
   };
 
+  const toggleCameraFlip = () => {
+    setCameraFlipped(prev => !prev);
+    toast.success(`Camera ${!cameraFlipped ? 'flipped' : 'normal'}`);
+  };
+
+  const toggleOCR = () => {
+    setOcrEnabled(prev => !prev);
+    toast.success(`Text recognition ${!ocrEnabled ? 'enabled' : 'disabled'}`);
+  };
+
+  const toggleQRCode = () => {
+    setQrCodeEnabled(prev => !prev);
+    toast.success(`QR code scanning ${!qrCodeEnabled ? 'enabled' : 'disabled'}`);
+  };
+
   const startCameraDetection = async () => {
     if (!cameraDetectionEnabled) {
       toast.error('Camera detection is disabled. Enable it in settings first.');
@@ -513,7 +683,7 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         video: { 
           width: { ideal: 640 },
           height: { ideal: 480 },
-          facingMode: 'environment' // Use back camera on mobile
+          facingMode: cameraFlipped ? 'user' : 'environment'
         } 
       });
       
@@ -531,7 +701,7 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       video.autoplay = true;
       video.muted = true;
       video.playsInline = true;
-      video.style.transform = 'scaleX(-1)'; // Mirror the video for better UX
+      video.style.transform = cameraFlipped ? 'scaleX(-1)' : 'scaleX(1)';
       
       // Wait for video to be ready
       await new Promise((resolve) => {
@@ -547,21 +717,36 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Start detection loop
       const interval = setInterval(async () => {
         if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
-          const objects = await detectObjects(video);
+          // Run all detection methods in parallel
+          const [objects, text, qrCodes] = await Promise.all([
+            detectObjects(video),
+            detectText(video),
+            detectQRCodes(video)
+          ]);
+          
           setDetectedObjects(objects);
+          setDetectedText(text);
+          setDetectedQRCodes(qrCodes);
+          
+          // Combine all detected items for audio feedback
+          const allDetected = [...objects, ...text, ...qrCodes];
           
           // Auto-play sounds for detected objects
-          if (objects.length > 0 && soundEnabled) {
-            objects.forEach((obj, index) => {
+          if (allDetected.length > 0 && soundEnabled) {
+            allDetected.forEach((obj, index) => {
               const flashcard = flashcards.find(f => f.title.toLowerCase() === obj.toLowerCase());
               if (flashcard) {
                 setTimeout(() => {
-                  if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(flashcard.title);
-                    utterance.rate = 0.8;
-                    utterance.pitch = 1.1;
-                    utterance.volume = 0.6;
-                    speechSynthesis.speak(utterance);
+                  if (spellEnabled) {
+                    speakSpelling(flashcard.title);
+                  } else {
+                    if ('speechSynthesis' in window) {
+                      const utterance = new SpeechSynthesisUtterance(flashcard.title);
+                      utterance.rate = 0.8;
+                      utterance.pitch = 1.1;
+                      utterance.volume = 0.6;
+                      speechSynthesis.speak(utterance);
+                    }
                   }
                 }, index * 1000); // Stagger announcements
               }
@@ -597,6 +782,8 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     setIsDetecting(false);
     setDetectedObjects([]);
+    setDetectedText([]);
+    setDetectedQRCodes([]);
     toast.success('Camera detection stopped');
   };
 
@@ -623,9 +810,15 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         soundEnabled,
         spellEnabled,
         cameraDetectionEnabled,
+        cameraFlipped,
+        ocrEnabled,
+        qrCodeEnabled,
         toggleSound,
         toggleSpell,
         toggleCameraDetection,
+        toggleCameraFlip,
+        toggleOCR,
+        toggleQRCode,
         startCameraDetection,
         stopCameraDetection,
         detectedObjects,
@@ -633,6 +826,9 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         modelLoading,
         cameraFeedElement,
         setCameraFeedElement,
+        detectedText,
+        detectedQRCodes,
+        speakSpelling,
       }}
     >
       {children}
