@@ -502,7 +502,7 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       // Load the model first if not already loaded
       if (!modelRef.current && !modelLoading) {
-        toast.info('Loading AI model, please wait...');
+        toast.loading('Loading AI model, please wait...');
         await loadModel();
       }
 
