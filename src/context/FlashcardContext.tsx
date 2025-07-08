@@ -25,6 +25,8 @@ interface FlashcardContextType {
   detectedObjects: string[];
   isDetecting: boolean;
   modelLoading: boolean;
+  cameraFeedElement: HTMLVideoElement | null;
+  setCameraFeedElement: (element: HTMLVideoElement | null) => void;
 }
 
 const FlashcardContext = createContext<FlashcardContextType | undefined>(undefined);
@@ -60,6 +62,7 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [modelLoading, setModelLoading] = useState(false);
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [detectionInterval, setDetectionInterval] = useState<NodeJS.Timeout | null>(null);
+  const [cameraFeedElement, setCameraFeedElement] = useState<HTMLVideoElement | null>(null);
   
   // TensorFlow.js model state
   const modelRef = useRef<cocoSsd.ObjectDetection | null>(null);
@@ -528,6 +531,7 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       video.autoplay = true;
       video.muted = true;
       video.playsInline = true;
+      video.style.transform = 'scaleX(-1)'; // Mirror the video for better UX
       
       // Wait for video to be ready
       await new Promise((resolve) => {
@@ -536,6 +540,9 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           resolve(void 0);
         };
       });
+
+      // Set the camera feed element for display
+      setCameraFeedElement(video);
 
       // Start detection loop
       const interval = setInterval(async () => {
@@ -581,6 +588,8 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       videoRef.current.srcObject = null;
     }
     
+    setCameraFeedElement(null);
+    
     if (detectionInterval) {
       clearInterval(detectionInterval);
       setDetectionInterval(null);
@@ -622,6 +631,8 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         detectedObjects,
         isDetecting,
         modelLoading,
+        cameraFeedElement,
+        setCameraFeedElement,
       }}
     >
       {children}

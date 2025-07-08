@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useFlashcards } from '../context/FlashcardContext';
-import { ArrowLeft, Play, Settings, Volume2, VolumeX, Type, TypeIcon, Camera, CameraOff, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Play, Settings, Volume2, VolumeX, Type, TypeIcon, Camera, CameraOff, Eye, EyeOff, Video } from 'lucide-react';
 import './Flashcards.css';
 
 const Flashcards: React.FC = () => {
@@ -18,7 +18,8 @@ const Flashcards: React.FC = () => {
     stopCameraDetection,
     detectedObjects,
     isDetecting,
-    modelLoading
+    modelLoading,
+    cameraFeedElement
   } = useFlashcards();
 
   return (
@@ -130,6 +131,32 @@ const Flashcards: React.FC = () => {
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+            
+            {isDetecting && cameraFeedElement && (
+              <div className="camera-feed-container">
+                <h4 className="camera-feed-title">
+                  <Video size={20} />
+                  Camera Feed
+                  <span className="live-indicator">
+                    <span className="live-dot"></span>
+                    LIVE
+                  </span>
+                </h4>
+                <video
+                  ref={(videoElement) => {
+                    if (videoElement && cameraFeedElement) {
+                      videoElement.srcObject = cameraFeedElement.srcObject;
+                      videoElement.play();
+                    }
+                  }}
+                  className="camera-feed"
+                  autoPlay
+                  muted
+                  playsInline
+                  style={{ transform: 'scaleX(-1)' }}
+                />
               </div>
             )}
           </div>
