@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { FlashcardCategory, Flashcard } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
+import * as tf from '@tensorflow/tfjs';
+import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
 interface FlashcardContextType {
   categories: FlashcardCategory[];
@@ -22,6 +24,7 @@ interface FlashcardContextType {
   stopCameraDetection: () => void;
   detectedObjects: string[];
   isDetecting: boolean;
+  modelLoading: boolean;
 }
 
 const FlashcardContext = createContext<FlashcardContextType | undefined>(undefined);
@@ -54,8 +57,13 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Camera detection state
   const [detectedObjects, setDetectedObjects] = useState<string[]>([]);
   const [isDetecting, setIsDetecting] = useState(false);
+  const [modelLoading, setModelLoading] = useState(false);
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [detectionInterval, setDetectionInterval] = useState<NodeJS.Timeout | null>(null);
+  
+  // TensorFlow.js model state
+  const modelRef = useRef<cocoSsd.ObjectDetection | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Save settings to localStorage
   useEffect(() => {
@@ -295,6 +303,147 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     },
   ]);
 
+  // Load TensorFlow.js model
+  const loadModel = async () => {
+    if (modelRef.current) return modelRef.current;
+    
+    setModelLoading(true);
+    try {
+      // Set TensorFlow.js backend to webgl for better performance
+      await tf.setBackend('webgl');
+      await tf.ready();
+      
+      console.log('Loading COCO-SSD model...');
+      const model = await cocoSsd.load({
+        base: 'lite_mobilenet_v2', // Use lighter model for better performance
+      });
+      
+      modelRef.current = model;
+      console.log('COCO-SSD model loaded successfully');
+      toast.success('AI model loaded successfully!');
+      return model;
+    } catch (error) {
+      console.error('Error loading model:', error);
+      toast.error('Failed to load AI model. Using fallback detection.');
+      return null;
+    } finally {
+      setModelLoading(false);
+    }
+  };
+
+  // Map detected object names to flashcard names
+  const mapObjectToFlashcard = (detectedClass: string): string[] => {
+    const objectMap: Record<string, string[]> = {
+      'cat': ['cat'],
+      'dog': ['dog'],
+      'cow': ['cow'],
+      'bird': ['duck'],
+      'person': [],
+      'car': [],
+      'truck': [],
+      'bus': [],
+      'bicycle': [],
+      'motorcycle': [],
+      'airplane': [],
+      'boat': [],
+      'traffic light': [],
+      'fire hydrant': [],
+      'stop sign': [],
+      'parking meter': [],
+      'bench': [],
+      'elephant': [],
+      'bear': [],
+      'zebra': [],
+      'giraffe': [],
+      'horse': [],
+      'sheep': [],
+      'teddy bear': [],
+      'frisbee': ['circle'],
+      'sports ball': ['circle'],
+      'kite': [],
+      'baseball bat': [],
+      'baseball glove': [],
+      'skateboard': [],
+      'surfboard': [],
+      'tennis racket': [],
+      'bottle': [],
+      'wine glass': [],
+      'cup': [],
+      'fork': [],
+      'knife': [],
+      'spoon': [],
+      'bowl': ['circle'],
+      'banana': ['yellow'],
+      'apple': ['red'],
+      'sandwich': [],
+      'orange': [],
+      'broccoli': ['green'],
+      'carrot': [],
+      'hot dog': [],
+      'pizza': ['circle'],
+      'donut': ['circle'],
+      'cake': [],
+      'chair': [],
+      'couch': [],
+      'potted plant': ['green'],
+      'bed': [],
+      'dining table': [],
+      'toilet': [],
+      'tv': ['square'],
+      'laptop': ['square'],
+      'mouse': [],
+      'remote': [],
+      'keyboard': [],
+      'cell phone': ['square'],
+      'microwave': ['square'],
+      'oven': ['square'],
+      'toaster': ['square'],
+      'sink': [],
+      'refrigerator': ['square'],
+      'book': ['square'],
+      'clock': ['circle'],
+      'vase': [],
+      'scissors': [],
+      'hair drier': [],
+      'toothbrush': []
+    };
+
+    return objectMap[detectedClass.toLowerCase()] || [];
+  };
+
+  // Real object detection using TensorFlow.js
+  const detectObjects = async (videoElement: HTMLVideoElement): Promise<string[]> => {
+    if (!modelRef.current) {
+      console.log('Model not loaded, attempting to load...');
+      const model = await loadModel();
+      if (!model) {
+        // Fallback to mock detection if model fails to load
+        return [];
+      }
+    }
+
+    try {
+      // Perform object detection
+      const predictions = await modelRef.current!.detect(videoElement);
+      
+      // Filter predictions with confidence > 0.5 and map to flashcard objects
+      const detectedObjects: string[] = [];
+      
+      predictions.forEach(prediction => {
+        if (prediction.score > 0.5) {
+          const mappedObjects = mapObjectToFlashcard(prediction.class);
+          detectedObjects.push(...mappedObjects);
+        }
+      });
+
+      // Remove duplicates and return
+      return [...new Set(detectedObjects)];
+    } catch (error) {
+      console.error('Error during object detection:', error);
+      return [];
+    }
+  };
+
   const getFlashcardsByCategory = (categoryId: string) => {
     return flashcards.filter(card => card.categoryId === categoryId);
   };
@@ -344,15 +493,6 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     toast.success(`Camera detection ${newValue ? 'enabled' : 'disabled'}`);
   };
 
-  // Mock object detection function (simulates AI detection)
-  const detectObjects = async (videoElement: HTMLVideoElement): Promise<string[]> => {
-    // This is a mock implementation
-    // In a real app, you would use TensorFlow.js or similar for actual object detection
-    const mockObjects = ['cat', 'dog', 'red', 'blue', 'circle', 'square'];
-    const randomObjects = mockObjects.filter(() => Math.random() > 0.8);
-    return randomObjects;
-  };
-
   const startCameraDetection = async () => {
     if (!cameraDetectionEnabled) {
       toast.error('Camera detection is disabled. Enable it in settings first.');
@@ -360,6 +500,12 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     try {
+      // Load the model first if not already loaded
+      if (!modelRef.current && !modelLoading) {
+        toast.info('Loading AI model, please wait...');
+        await loadModel();
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           width: { ideal: 640 },
@@ -373,19 +519,33 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       toast.success('Camera detection started!');
 
       // Create video element for detection
-      const video = document.createElement('video');
+      if (!videoRef.current) {
+        videoRef.current = document.createElement('video');
+      }
+      
+      const video = videoRef.current;
       video.srcObject = stream;
-      video.play();
+      video.autoplay = true;
+      video.muted = true;
+      video.playsInline = true;
+      
+      // Wait for video to be ready
+      await new Promise((resolve) => {
+        video.onloadedmetadata = () => {
+          video.play();
+          resolve(void 0);
+        };
+      });
 
       // Start detection loop
       const interval = setInterval(async () => {
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
           const objects = await detectObjects(video);
           setDetectedObjects(objects);
           
           // Auto-play sounds for detected objects
           if (objects.length > 0 && soundEnabled) {
-            objects.forEach(obj => {
+            objects.forEach((obj, index) => {
               const flashcard = flashcards.find(f => f.title.toLowerCase() === obj.toLowerCase());
               if (flashcard) {
                 setTimeout(() => {
@@ -396,12 +556,12 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     utterance.volume = 0.6;
                     speechSynthesis.speak(utterance);
                   }
-                }, Math.random() * 1000);
+                }, index * 1000); // Stagger announcements
               }
             });
           }
         }
-      }, 2000); // Check every 2 seconds
+      }, 3000); // Check every 3 seconds for better performance
 
       setDetectionInterval(interval);
     } catch (error) {
@@ -415,6 +575,10 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (videoStream) {
       videoStream.getTracks().forEach(track => track.stop());
       setVideoStream(null);
+    }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
     
     if (detectionInterval) {
@@ -431,6 +595,10 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     return () => {
       stopCameraDetection();
+      // Dispose of the model when component unmounts
+      if (modelRef.current) {
+        modelRef.current = null;
+      }
     };
   }, []);
 
@@ -453,6 +621,7 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         stopCameraDetection,
         detectedObjects,
         isDetecting,
+        modelLoading,
       }}
     >
       {children}

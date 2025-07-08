@@ -493,6 +493,13 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  box-shadow: 0 4px 12px rgba(156, 163, 175, 0.3);
+}
+
+.camera-button:disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(156, 163, 175, 0.3);
 }
 
 .camera-button.stop {
@@ -520,6 +527,12 @@
   background-color: #fef3c7;
   border-color: #fde68a;
   color: #92400e;
+}
+
+.detection-status.loading {
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
 }
 
 .detected-objects {

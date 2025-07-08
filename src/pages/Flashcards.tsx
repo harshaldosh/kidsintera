@@ -17,7 +17,8 @@ const Flashcards: React.FC = () => {
     startCameraDetection,
     stopCameraDetection,
     detectedObjects,
-    isDetecting
+    isDetecting,
+    modelLoading
   } = useFlashcards();
 
   return (
@@ -97,9 +98,10 @@ const Flashcards: React.FC = () => {
                 <button 
                   className="camera-button"
                   onClick={startCameraDetection}
+                  disabled={modelLoading}
                 >
                   <Camera size={20} />
-                  Start Camera Detection
+                  {modelLoading ? 'Loading AI Model...' : 'Start Camera Detection'}
                 </button>
               ) : (
                 <button 
@@ -113,7 +115,8 @@ const Flashcards: React.FC = () => {
               
               <div className={`detection-status ${isDetecting ? 'detecting' : ''}`}>
                 <Eye size={16} />
-                {isDetecting ? 'Camera is detecting objects...' : 'Camera detection ready'}
+                {modelLoading ? 'Loading AI model...' : 
+                 isDetecting ? 'AI is analyzing camera feed...' : 'Camera detection ready'}
               </div>
             </div>
             
