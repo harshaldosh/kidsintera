@@ -6,7 +6,7 @@ import './Flashcards.css';
 
 const FlashcardCategory: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
-  const { getCategoryById, getFlashcardsByCategory, playSound } = useFlashcards();
+  const { getCategoryById, getFlashcardsByCategory, playSound, soundEnabled, spellEnabled } = useFlashcards();
   
   const category = categoryId ? getCategoryById(categoryId) : undefined;
   const flashcards = categoryId ? getFlashcardsByCategory(categoryId) : [];
@@ -26,6 +26,8 @@ const FlashcardCategory: React.FC = () => {
   }
 
   const handlePlaySound = (soundUrl: string, title: string) => {
+    if (!soundEnabled) return;
+    
     try {
       // Try to play the audio file first
       const audio = new Audio(soundUrl);
@@ -91,20 +93,22 @@ const FlashcardCategory: React.FC = () => {
               <p className="flashcard-description">{flashcard.description}</p>
             )}
             
-            {flashcard.pronunciation && (
+            {flashcard.pronunciation && spellEnabled && (
               <div className="flashcard-pronunciation">
                 /{flashcard.pronunciation}/
               </div>
             )}
             
-            <button
-              className="play-button"
-              onClick={() => handlePlaySound(flashcard.soundUrl, flashcard.title)}
-              style={{ '--category-color': category.color } as React.CSSProperties}
-            >
-              <Play size={20} />
-              Play Sound
-            </button>
+            {soundEnabled && (
+              <button
+                className="play-button"
+                onClick={() => handlePlaySound(flashcard.soundUrl, flashcard.title)}
+                style={{ '--category-color': category.color } as React.CSSProperties}
+              >
+                <Play size={20} />
+                Play Sound
+              </button>
+            )}
           </div>
         ))}
       </div>

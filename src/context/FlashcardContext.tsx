@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { FlashcardCategory, Flashcard } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import toast from 'react-hot-toast';
 
 interface FlashcardContextType {
   categories: FlashcardCategory[];
@@ -9,6 +10,18 @@ interface FlashcardContextType {
   getFlashcardById: (id: string) => Flashcard | undefined;
   getCategoryById: (id: string) => FlashcardCategory | undefined;
   playSound: (soundUrl: string) => void;
+  // Settings
+  soundEnabled: boolean;
+  spellEnabled: boolean;
+  cameraDetectionEnabled: boolean;
+  toggleSound: () => void;
+  toggleSpell: () => void;
+  toggleCameraDetection: () => void;
+  // Camera detection
+  startCameraDetection: () => Promise<void>;
+  stopCameraDetection: () => void;
+  detectedObjects: string[];
+  isDetecting: boolean;
 }
 
 const FlashcardContext = createContext<FlashcardContextType | undefined>(undefined);
@@ -22,6 +35,41 @@ export const useFlashcards = () => {
 };
 
 export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Settings state
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('flashcard_sound_enabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+  
+  const [spellEnabled, setSpellEnabled] = useState(() => {
+    const saved = localStorage.getItem('flashcard_spell_enabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+  
+  const [cameraDetectionEnabled, setCameraDetectionEnabled] = useState(() => {
+    const saved = localStorage.getItem('flashcard_camera_enabled');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  // Camera detection state
+  const [detectedObjects, setDetectedObjects] = useState<string[]>([]);
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
+  const [detectionInterval, setDetectionInterval] = useState<NodeJS.Timeout | null>(null);
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem('flashcard_sound_enabled', JSON.stringify(soundEnabled));
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('flashcard_spell_enabled', JSON.stringify(spellEnabled));
+  }, [spellEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('flashcard_camera_enabled', JSON.stringify(cameraDetectionEnabled));
+  }, [cameraDetectionEnabled]);
+
   const [categories] = useState<FlashcardCategory[]>([
     {
       id: 'animals',
@@ -260,6 +308,8 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const playSound = (soundUrl: string) => {
+    if (!soundEnabled) return;
+    
     try {
       // Create audio element and play sound
       const audio = new Audio(soundUrl);
@@ -273,6 +323,117 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const toggleSound = () => {
+    setSoundEnabled(prev => !prev);
+    toast.success(`Sound ${!soundEnabled ? 'enabled' : 'disabled'}`);
+  };
+
+  const toggleSpell = () => {
+    setSpellEnabled(prev => !prev);
+    toast.success(`Spelling ${!spellEnabled ? 'enabled' : 'disabled'}`);
+  };
+
+  const toggleCameraDetection = () => {
+    const newValue = !cameraDetectionEnabled;
+    setCameraDetectionEnabled(newValue);
+    
+    if (!newValue && isDetecting) {
+      stopCameraDetection();
+    }
+    
+    toast.success(`Camera detection ${newValue ? 'enabled' : 'disabled'}`);
+  };
+
+  // Mock object detection function (simulates AI detection)
+  const detectObjects = async (videoElement: HTMLVideoElement): Promise<string[]> => {
+    // This is a mock implementation
+    // In a real app, you would use TensorFlow.js or similar for actual object detection
+    const mockObjects = ['cat', 'dog', 'red', 'blue', 'circle', 'square'];
+    const randomObjects = mockObjects.filter(() => Math.random() > 0.8);
+    return randomObjects;
+  };
+
+  const startCameraDetection = async () => {
+    if (!cameraDetectionEnabled) {
+      toast.error('Camera detection is disabled. Enable it in settings first.');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'environment' // Use back camera on mobile
+        } 
+      });
+      
+      setVideoStream(stream);
+      setIsDetecting(true);
+      toast.success('Camera detection started!');
+
+      // Create video element for detection
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+
+      // Start detection loop
+      const interval = setInterval(async () => {
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          const objects = await detectObjects(video);
+          setDetectedObjects(objects);
+          
+          // Auto-play sounds for detected objects
+          if (objects.length > 0 && soundEnabled) {
+            objects.forEach(obj => {
+              const flashcard = flashcards.find(f => f.title.toLowerCase() === obj.toLowerCase());
+              if (flashcard) {
+                setTimeout(() => {
+                  if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(flashcard.title);
+                    utterance.rate = 0.8;
+                    utterance.pitch = 1.1;
+                    utterance.volume = 0.6;
+                    speechSynthesis.speak(utterance);
+                  }
+                }, Math.random() * 1000);
+              }
+            });
+          }
+        }
+      }, 2000); // Check every 2 seconds
+
+      setDetectionInterval(interval);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      toast.error('Could not access camera. Please check permissions.');
+      setIsDetecting(false);
+    }
+  };
+
+  const stopCameraDetection = () => {
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+      setVideoStream(null);
+    }
+    
+    if (detectionInterval) {
+      clearInterval(detectionInterval);
+      setDetectionInterval(null);
+    }
+    
+    setIsDetecting(false);
+    setDetectedObjects([]);
+    toast.success('Camera detection stopped');
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCameraDetection();
+    };
+  }, []);
+
   return (
     <FlashcardContext.Provider
       value={{
@@ -282,6 +443,16 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         getFlashcardById,
         getCategoryById,
         playSound,
+        soundEnabled,
+        spellEnabled,
+        cameraDetectionEnabled,
+        toggleSound,
+        toggleSpell,
+        toggleCameraDetection,
+        startCameraDetection,
+        stopCameraDetection,
+        detectedObjects,
+        isDetecting,
       }}
     >
       {children}

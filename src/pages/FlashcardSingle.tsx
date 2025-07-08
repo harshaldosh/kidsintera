@@ -7,7 +7,7 @@ import './Flashcards.css';
 const FlashcardSingle: React.FC = () => {
   const { categoryId, flashcardId } = useParams<{ categoryId: string; flashcardId: string }>();
   const navigate = useNavigate();
-  const { getCategoryById, getFlashcardById, getFlashcardsByCategory, playSound } = useFlashcards();
+  const { getCategoryById, getFlashcardById, getFlashcardsByCategory, playSound, soundEnabled, spellEnabled } = useFlashcards();
   
   const category = categoryId ? getCategoryById(categoryId) : undefined;
   const flashcard = flashcardId ? getFlashcardById(flashcardId) : undefined;
@@ -19,7 +19,7 @@ const FlashcardSingle: React.FC = () => {
 
   // Auto-play sound when flashcard loads
   useEffect(() => {
-    if (flashcard) {
+    if (flashcard && soundEnabled) {
       const timer = setTimeout(() => {
         handlePlaySound();
       }, 500);
@@ -43,6 +43,8 @@ const FlashcardSingle: React.FC = () => {
   }
 
   const handlePlaySound = () => {
+    if (!soundEnabled) return;
+    
     try {
       // Try to play the audio file first
       const audio = new Audio(flashcard.soundUrl);
@@ -133,20 +135,22 @@ const FlashcardSingle: React.FC = () => {
           <p className="single-flashcard-description">{flashcard.description}</p>
         )}
         
-        {flashcard.pronunciation && (
+        {flashcard.pronunciation && spellEnabled && (
           <div className="single-flashcard-pronunciation">
             /{flashcard.pronunciation}/
           </div>
         )}
         
-        <button
-          className="single-play-button"
-          onClick={handlePlaySound}
-          style={{ '--category-color': category.color } as React.CSSProperties}
-        >
-          <Play size={24} />
-          Play Sound
-        </button>
+        {soundEnabled && (
+          <button
+            className="single-play-button"
+            onClick={handlePlaySound}
+            style={{ '--category-color': category.color } as React.CSSProperties}
+          >
+            <Play size={24} />
+            Play Sound
+          </button>
+        )}
         
         <div className="navigation-buttons">
           {prevCard && (
