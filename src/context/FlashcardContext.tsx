@@ -266,13 +266,7 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       audio.volume = 0.7;
       audio.play().catch(error => {
         console.log('Sound playback failed:', error);
-        // Fallback: use Web Speech API for text-to-speech
-        if ('speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance('Click!');
-          utterance.rate = 0.8;
-          utterance.pitch = 1.2;
-          speechSynthesis.speak(utterance);
-        }
+        // Audio fallback will be handled by the calling component
       });
     } catch (error) {
       console.log('Audio creation failed:', error);

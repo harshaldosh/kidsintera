@@ -43,17 +43,29 @@ const FlashcardSingle: React.FC = () => {
   }
 
   const handlePlaySound = () => {
-    playSound(flashcard.soundUrl);
-    
-    // Fallback to speech synthesis
-    if ('speechSynthesis' in window) {
-      setTimeout(() => {
+    try {
+      // Try to play the audio file first
+      const audio = new Audio(flashcard.soundUrl);
+      audio.volume = 0.7;
+      audio.play().catch(() => {
+        // If audio fails, use text-to-speech with the actual title
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(flashcard.title);
+          utterance.rate = 0.7;
+          utterance.pitch = 1.2;
+          utterance.volume = 0.9;
+          speechSynthesis.speak(utterance);
+        }
+      });
+    } catch (error) {
+      // Fallback to text-to-speech if audio creation fails
+      if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(flashcard.title);
         utterance.rate = 0.7;
         utterance.pitch = 1.2;
         utterance.volume = 0.9;
         speechSynthesis.speak(utterance);
-      }, 100);
+      }
     }
   };
 

@@ -26,17 +26,29 @@ const FlashcardCategory: React.FC = () => {
   }
 
   const handlePlaySound = (soundUrl: string, title: string) => {
-    playSound(soundUrl);
-    
-    // Fallback to speech synthesis if sound file doesn't exist
-    if ('speechSynthesis' in window) {
-      setTimeout(() => {
+    try {
+      // Try to play the audio file first
+      const audio = new Audio(soundUrl);
+      audio.volume = 0.7;
+      audio.play().catch(() => {
+        // If audio fails, use text-to-speech with the actual title
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(title);
+          utterance.rate = 0.8;
+          utterance.pitch = 1.1;
+          utterance.volume = 0.8;
+          speechSynthesis.speak(utterance);
+        }
+      });
+    } catch (error) {
+      // Fallback to text-to-speech if audio creation fails
+      if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(title);
         utterance.rate = 0.8;
         utterance.pitch = 1.1;
         utterance.volume = 0.8;
         speechSynthesis.speak(utterance);
-      }, 100);
+      }
     }
   };
 
