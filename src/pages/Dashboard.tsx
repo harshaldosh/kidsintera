@@ -1,12 +1,16 @@
 import React from 'react';
 import { useTodos } from '../context/TodoContext';
+import { useAuth } from '../context/AuthContext';
+import { useAdmin } from '../context/AdminContext';
 import { TodoStatus } from '../types';
-import { BarChart3, CheckSquare, Clock, Award, ArrowRight } from 'lucide-react';
+import { BarChart3, CheckSquare, Clock, Award, ArrowRight, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
   const { todos } = useTodos();
+  const { user } = useAuth();
+  const { isAdmin } = useAdmin();
   
   const todoCount = todos.filter(todo => todo.status === TodoStatus.TODO).length;
   const inProgressCount = todos.filter(todo => todo.status === TodoStatus.IN_PROGRESS).length;
@@ -18,10 +22,43 @@ const Dashboard: React.FC = () => {
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, 6);
   
+  const isUserAdmin = user && isAdmin(user.email || '');
+  
   return (
     <div className="dashboard fade-in">
       <div className="dashboard-header">
-        <h1 className="page-heading">Welcome to TaskFlow</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <h1 className="page-heading">Welcome to TaskFlow</h1>
+          {isUserAdmin && (
+            <Link 
+              to="/admin" 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                backgroundColor: 'var(--primary-100)',
+                color: 'var(--primary-700)',
+                padding: '8px 16px',
+                borderRadius: 'var(--border-radius-md)',
+                textDecoration: 'none',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                transition: 'var(--transition-base)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--primary-200)';
+                e.currentTarget.style.color = 'var(--primary-800)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--primary-100)';
+                e.currentTarget.style.color = 'var(--primary-700)';
+              }}
+            >
+              <Shield size={16} />
+              Admin Panel
+            </Link>
+          )}
+        </div>
         <p className="subtitle">Manage your tasks and boost your productivity</p>
       </div>
       

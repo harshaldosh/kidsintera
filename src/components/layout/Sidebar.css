@@ -77,6 +77,42 @@
   color: var(--primary-300);
 }
 
+.admin-nav-link {
+  border-left: 3px solid transparent;
+  background-color: var(--primary-50);
+  color: var(--primary-700);
+  font-weight: 600;
+}
+
+.admin-nav-link:hover {
+  background-color: var(--primary-100);
+  color: var(--primary-800);
+  border-left-color: var(--primary-300);
+}
+
+.admin-nav-link.active {
+  background-color: var(--primary-600);
+  color: white;
+  border-left-color: var(--primary-800);
+}
+
+.dark-theme .admin-nav-link {
+  background-color: var(--primary-900);
+  color: var(--primary-300);
+}
+
+.dark-theme .admin-nav-link:hover {
+  background-color: var(--primary-800);
+  color: var(--primary-200);
+  border-left-color: var(--primary-600);
+}
+
+.dark-theme .admin-nav-link.active {
+  background-color: var(--primary-600);
+  color: white;
+  border-left-color: var(--primary-400);
+}
+
 .sidebar-footer {
   padding: 16px;
   border-top: 1px solid var(--border-light);

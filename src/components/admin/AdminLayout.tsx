@@ -9,7 +9,8 @@ import {
   Menu, 
   X, 
   LogOut,
-  Shield
+  Shield,
+  User
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './AdminLayout.css';
@@ -122,6 +123,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           <div className="admin-header-right">
             <Link to="/" className="admin-back-to-site">
               Back to Site
+            </Link>
+            <Link to="/dashboard" className="admin-user-dashboard">
+              <User size={16} />
+              User Dashboard
             </Link>
           </div>
         </header>

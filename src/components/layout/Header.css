@@ -105,6 +105,26 @@
   background-color: var(--bg-tertiary);
 }
 
+.admin-access-button {
+  background-color: var(--primary-100) !important;
+  color: var(--primary-700) !important;
+}
+
+.admin-access-button:hover {
+  background-color: var(--primary-200) !important;
+  color: var(--primary-800) !important;
+}
+
+.dark-theme .admin-access-button {
+  background-color: var(--primary-900) !important;
+  color: var(--primary-300) !important;
+}
+
+.dark-theme .admin-access-button:hover {
+  background-color: var(--primary-800) !important;
+  color: var(--primary-200) !important;
+}
+
 .user-profile {
   display: flex;
   align-items: center;

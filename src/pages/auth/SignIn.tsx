@@ -37,7 +37,16 @@ const SignIn: React.FC = () => {
       
       // Navigate based on admin status
       if (isAdmin(email)) {
-        navigate('/admin', { replace: true });
+        // Check if user came from admin panel or wants to go to admin
+        const searchParams = new URLSearchParams(location.search);
+        const redirectTo = searchParams.get('redirect');
+        
+        if (redirectTo === 'admin') {
+          navigate('/admin', { replace: true });
+        } else {
+          // Default to user dashboard for admin users unless specifically requesting admin
+          navigate(from, { replace: true });
+        }
       } else {
         navigate(from, { replace: true });
       }

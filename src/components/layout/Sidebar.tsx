@@ -1,7 +1,9 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, Settings, X, User } from 'lucide-react';
+import { LayoutGrid, CheckSquare, Settings, X, User, Shield } from 'lucide-react';
 import { useSubscription } from '../../context/SubscriptionContext';
+import { useAuth } from '../../context/AuthContext';
+import { useAdmin } from '../../context/AdminContext';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -11,6 +13,8 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const { isFeatureEnabled } = useSubscription();
+  const { user } = useAuth();
+  const { isAdmin } = useAdmin();
 
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar-mobile-open' : ''}`}>
@@ -46,6 +50,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           <Settings size={20} />
           <span>Settings</span>
         </NavLink>
+        
+        {user && isAdmin(user.email || '') && (
+          <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active admin-nav-link' : 'nav-link admin-nav-link'}>
+            <Shield size={20} />
+            <span>Admin Panel</span>
+          </NavLink>
+        )}
       </nav>
       
       <div className="sidebar-footer">

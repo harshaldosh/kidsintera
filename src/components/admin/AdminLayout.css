@@ -184,6 +184,35 @@
   color: var(--primary-300);
 }
 
+.admin-user-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--secondary-600);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-base);
+  border: 1px solid var(--secondary-200);
+}
+
+.admin-user-dashboard:hover {
+  background-color: var(--secondary-50);
+  color: var(--secondary-700);
+  border-color: var(--secondary-300);
+}
+
+.dark-theme .admin-user-dashboard {
+  border-color: var(--secondary-700);
+}
+
+.dark-theme .admin-user-dashboard:hover {
+  background-color: var(--secondary-900);
+  color: var(--secondary-300);
+  border-color: var(--secondary-600);
+}
+
 .admin-main-content {
   flex: 1;
   padding: 24px;
@@ -212,5 +241,15 @@
   
   .admin-main-content {
     padding: 16px;
+  }
+  
+  .admin-header-right {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .admin-user-dashboard {
+    font-size: 0.875rem;
+    padding: 6px 12px;
   }
 }

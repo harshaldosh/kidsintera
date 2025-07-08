@@ -1,8 +1,9 @@
 import React from 'react';
-import { Menu, Bell, Sun, Moon, Search, LogOut } from 'lucide-react';
+import { Menu, Bell, Sun, Moon, Search, LogOut, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { useAdmin } from '../../context/AdminContext';
 import './Header.css';
 
 interface HeaderProps {
@@ -13,6 +14,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
   const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   
   const handleSignOut = async () => {
@@ -62,6 +64,16 @@ const Header: React.FC<HeaderProps> = ({ title, toggleSidebar }) => {
         <button className="icon-button" aria-label="Notifications">
           <Bell size={20} />
         </button>
+        {user && isAdmin(user.email || '') && (
+          <button 
+            className="icon-button admin-access-button" 
+            onClick={() => navigate('/admin')}
+            aria-label="Admin Panel"
+            title="Access Admin Panel"
+          >
+            <Shield size={20} />
+          </button>
+        )}
         <button className="icon-button" onClick={handleSignOut} aria-label="Sign out">
           <LogOut size={20} />
         </button>
