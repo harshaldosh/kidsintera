@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, Settings, X, User, Shield } from 'lucide-react';
+import { LayoutGrid, CheckSquare, Settings, X, User, Shield, BookOpen } from 'lucide-react';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { useAuth } from '../../context/AuthContext';
 import { useAdmin } from '../../context/AdminContext';
@@ -40,6 +40,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             <span>Todo Board</span>
           </NavLink>
         )}
+
+        <NavLink to="/flashcards" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          <BookOpen size={20} />
+          <span>Flashcards</span>
+        </NavLink>
 
         <NavLink to="/profile" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <User size={20} />

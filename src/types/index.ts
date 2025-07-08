@@ -93,3 +93,25 @@ export interface PaymentIntent {
   paymentMethod: 'stripe' | 'razorpay';
   createdAt: number;
 }
+
+// Flashcards Types
+export interface FlashcardCategory {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  icon: string;
+  ageGroup: string;
+  createdAt: number;
+}
+
+export interface Flashcard {
+  id: string;
+  categoryId: string;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  soundUrl: string;
+  pronunciation?: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  createdAt: number;

@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { AdminProvider } from './context/AdminContext';
+import { FlashcardProvider } from './context/FlashcardContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import { TodoProvider } from './context/TodoContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -24,6 +25,9 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import PlanManagement from './pages/admin/PlanManagement';
 import CouponManagement from './pages/admin/CouponManagement';
+import Flashcards from './pages/Flashcards';
+import FlashcardCategory from './pages/FlashcardCategory';
+import FlashcardSingle from './pages/FlashcardSingle';
 import './App.css';
 
 const AppRoutes: React.FC = () => {
@@ -114,6 +118,27 @@ const AppRoutes: React.FC = () => {
           </Layout>
         </ProtectedRoute>
       } />
+      <Route path="/flashcards" element={
+        <ProtectedRoute>
+          <FlashcardProvider>
+            <Flashcards />
+          </FlashcardProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/flashcards/:categoryId" element={
+        <ProtectedRoute>
+          <FlashcardProvider>
+            <FlashcardCategory />
+          </FlashcardProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/flashcards/:categoryId/:flashcardId" element={
+        <ProtectedRoute>
+          <FlashcardProvider>
+            <FlashcardSingle />
+          </FlashcardProvider>
+        </ProtectedRoute>
+      } />
       
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -126,14 +151,16 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <AdminProvider>
-          <SubscriptionProvider>
-            <TodoProvider>
-              <Router>
-                <Toaster position="top-right" />
-                <AppRoutes />
-              </Router>
-            </TodoProvider>
-          </SubscriptionProvider>
+          <FlashcardProvider>
+            <SubscriptionProvider>
+              <TodoProvider>
+                <Router>
+                  <Toaster position="top-right" />
+                  <AppRoutes />
+                </Router>
+              </TodoProvider>
+            </SubscriptionProvider>
+          </FlashcardProvider>
         </AdminProvider>
       </AuthProvider>
     </ThemeProvider>

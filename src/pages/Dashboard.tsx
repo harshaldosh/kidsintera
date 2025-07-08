@@ -3,7 +3,7 @@ import { useTodos } from '../context/TodoContext';
 import { useAuth } from '../context/AuthContext';
 import { useAdmin } from '../context/AdminContext';
 import { TodoStatus } from '../types';
-import { BarChart3, CheckSquare, Clock, Award, ArrowRight, Shield } from 'lucide-react';
+import { BarChart3, CheckSquare, Clock, Award, ArrowRight, Shield, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './Dashboard.css';
 
@@ -102,6 +102,56 @@ const Dashboard: React.FC = () => {
             <p className="stat-label">To Do</p>
           </div>
         </div>
+      </div>
+      
+      <div style={{ 
+        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', 
+        borderRadius: 'var(--border-radius-lg)', 
+        padding: '24px', 
+        marginBottom: '32px',
+        boxShadow: 'var(--shadow)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+          <BookOpen size={32} color="#f59e0b" />
+          <div>
+            <h2 style={{ margin: '0 0 4px 0', fontSize: '1.5rem', color: '#92400e' }}>
+              🌟 Learning Flashcards for Kids
+            </h2>
+            <p style={{ margin: 0, color: '#a16207', fontSize: '1rem' }}>
+              Fun interactive learning with sounds and animations for 3-4 year olds
+            </p>
+          </div>
+        </div>
+        <Link 
+          to="/flashcards" 
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#f59e0b',
+            color: 'white',
+            padding: '12px 20px',
+            borderRadius: 'var(--border-radius-md)',
+            textDecoration: 'none',
+            fontWeight: '600',
+            transition: 'var(--transition-base)',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#d97706';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#f59e0b';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+          }}
+        >
+          <BookOpen size={20} />
+          Start Learning
+          <ArrowRight size={16} />
+        </Link>
       </div>
       
       <div className="dashboard-content">

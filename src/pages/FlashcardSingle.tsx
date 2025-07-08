@@ -1,0 +1,176 @@
+import React, { useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useFlashcards } from '../context/FlashcardContext';
+import { ArrowLeft, Play, SkipForward, SkipBack, Grid } from 'lucide-react';
+import './Flashcards.css';
+
+const FlashcardSingle: React.FC = () => {
+  const { categoryId, flashcardId } = useParams<{ categoryId: string; flashcardId: string }>();
+  const navigate = useNavigate();
+  const { getCategoryById, getFlashcardById, getFlashcardsByCategory, playSound } = useFlashcards();
+  
+  const category = categoryId ? getCategoryById(categoryId) : undefined;
+  const flashcard = flashcardId ? getFlashcardById(flashcardId) : undefined;
+  const allFlashcards = categoryId ? getFlashcardsByCategory(categoryId) : [];
+  
+  const currentIndex = allFlashcards.findIndex(card => card.id === flashcardId);
+  const nextCard = allFlashcards[currentIndex + 1];
+  const prevCard = allFlashcards[currentIndex - 1];
+
+  // Auto-play sound when flashcard loads
+  useEffect(() => {
+    if (flashcard) {
+      const timer = setTimeout(() => {
+        handlePlaySound();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [flashcard]);
+
+  if (!category || !flashcard) {
+    return (
+      <div className="flashcards-page">
+        <div className="flashcards-header">
+          <Link to="/flashcards" className="back-button">
+            <ArrowLeft size={20} />
+            Back to Categories
+          </Link>
+          <h1 className="flashcards-title">Flashcard not found</h1>
+        </div>
+      </div>
+    );
+  }
+
+  const handlePlaySound = () => {
+    playSound(flashcard.soundUrl);
+    
+    // Fallback to speech synthesis
+    if ('speechSynthesis' in window) {
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(flashcard.title);
+        utterance.rate = 0.7;
+        utterance.pitch = 1.2;
+        utterance.volume = 0.9;
+        speechSynthesis.speak(utterance);
+      }, 100);
+    }
+  };
+
+  const handleNext = () => {
+    if (nextCard) {
+      navigate(`/flashcards/${categoryId}/${nextCard.id}`);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (prevCard) {
+      navigate(`/flashcards/${categoryId}/${prevCard.id}`);
+    }
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' && nextCard) {
+        handleNext();
+      } else if (e.key === 'ArrowLeft' && prevCard) {
+        handlePrevious();
+      } else if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        handlePlaySound();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [nextCard, prevCard]);
+
+  return (
+    <div className="flashcards-page">
+      <div className="flashcards-header">
+        <Link to={`/flashcards/${categoryId}`} className="back-button">
+          <ArrowLeft size={20} />
+          Back to {category.name}
+        </Link>
+        
+        <h1 className="flashcards-title">
+          {category.icon} {category.name}
+        </h1>
+        <p className="flashcards-subtitle">
+          Card {currentIndex + 1} of {allFlashcards.length}
+        </p>
+      </div>
+
+      <div 
+        className="single-flashcard-container"
+        style={{ '--category-color': category.color } as React.CSSProperties}
+      >
+        <img
+          src={flashcard.imageUrl}
+          alt={flashcard.title}
+          className="single-flashcard-image"
+          onError={(e) => {
+            e.currentTarget.src = 'https://images.pexels.com/photos/1029604/pexels-photo-1029604.jpeg?auto=compress&cs=tinysrgb&w=400';
+          }}
+        />
+        
+        <h2 className="single-flashcard-title">{flashcard.title}</h2>
+        
+        {flashcard.description && (
+          <p className="single-flashcard-description">{flashcard.description}</p>
+        )}
+        
+        {flashcard.pronunciation && (
+          <div className="single-flashcard-pronunciation">
+            /{flashcard.pronunciation}/
+          </div>
+        )}
+        
+        <button
+          className="single-play-button"
+          onClick={handlePlaySound}
+          style={{ '--category-color': category.color } as React.CSSProperties}
+        >
+          <Play size={24} />
+          Play Sound
+        </button>
+        
+        <div className="navigation-buttons">
+          {prevCard && (
+            <button
+              className="nav-button"
+              onClick={handlePrevious}
+              style={{ '--category-color': category.color } as React.CSSProperties}
+            >
+              <SkipBack size={20} />
+              Previous
+            </button>
+          )}
+          
+          <Link
+            to={`/flashcards/${categoryId}`}
+            className="nav-button"
+            style={{ '--category-color': category.color } as React.CSSProperties}
+          >
+            <Grid size={20} />
+            View All
+          </Link>
+          
+          {nextCard && (
+            <button
+              className="nav-button"
+              onClick={handleNext}
+              style={{ '--category-color': category.color } as React.CSSProperties}
+            >
+              Next
+              <SkipForward size={20} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FlashcardSingle;

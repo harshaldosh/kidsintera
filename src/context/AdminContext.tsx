@@ -210,7 +210,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const isAdmin = (email: string) => {
-    return email === 'admin@admin.com';
+    return email === 'admin@admin.com' || email === 'admin@demo.com';
   };
 
   return (
