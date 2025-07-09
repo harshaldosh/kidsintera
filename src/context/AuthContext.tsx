@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   signUp: (email: string, password: string, fullName?: string) => Promise<void>;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -32,6 +32,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Check for remembered session on app start
+  useEffect(() => {
+    const rememberedSession = localStorage.getItem('remembered_session');
+    if (rememberedSession) {
+      try {
+        const sessionData = JSON.parse(rememberedSession);
+        const expiryTime = sessionData.expiryTime;
+        
+        // Check if remembered session is still valid (30 days)
+        if (Date.now() < expiryTime) {
+          setUser(sessionData.user);
+          setSession(sessionData.session);
+        } else {
+          // Clean up expired remembered session
+          localStorage.removeItem('remembered_session');
+        }
+      } catch (error) {
+        console.error('Error parsing remembered session:', error);
+        localStorage.removeItem('remembered_session');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Check if Supabase is properly configured
@@ -64,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     try {
       // Check for hardcoded admin login
       if (email === 'admin@demo.com' && password === 'admin') {
@@ -82,16 +105,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         setUser(mockAdminUser as any);
         setSession({ user: mockAdminUser, access_token: 'demo-token' } as any);
+        
+        // Handle remember me for demo admin
+        if (rememberMe) {
+          const rememberedData = {
+            user: mockAdminUser,
+            session: { user: mockAdminUser, access_token: 'demo-token' },
+            expiryTime: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+          };
+          localStorage.setItem('remembered_session', JSON.stringify(rememberedData));
+        }
+        
         toast.success('Signed in successfully!');
         return;
       }
       
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) throw error;
+      
+      // Handle remember me for Supabase users
+      if (rememberMe && data.user && data.session) {
+        const rememberedData = {
+          user: data.user,
+          session: data.session,
+          expiryTime: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+        };
+        localStorage.setItem('remembered_session', JSON.stringify(rememberedData));
+      }
+      
       toast.success('Signed in successfully!');
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign in');
@@ -120,6 +165,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      // Clear remembered session
+      localStorage.removeItem('remembered_session');
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       

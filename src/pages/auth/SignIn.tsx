@@ -10,6 +10,7 @@ const SignIn: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [resendingEmail, setResendingEmail] = useState(false);
@@ -33,7 +34,7 @@ const SignIn: React.FC = () => {
     setShowEmailConfirmation(false);
     
     try {
-      await signIn(email, password);
+      await signIn(email, password, rememberMe);
       
       // Navigate based on admin status
       if (isAdmin(email)) {
@@ -198,6 +199,18 @@ const SignIn: React.FC = () => {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+          </div>
+
+          <div className="form-group">
+            <label className="remember-me-label">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="remember-me-checkbox"
+              />
+              <span className="remember-me-text">Remember me for 30 days</span>
+            </label>
           </div>
 
           <div className="forgot-password">
