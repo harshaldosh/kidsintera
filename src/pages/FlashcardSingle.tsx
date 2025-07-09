@@ -8,7 +8,7 @@ import './Flashcards.css';
 const FlashcardSingle: React.FC = () => {
   const { categoryId, flashcardId } = useParams<{ categoryId: string; flashcardId: string }>();
   const navigate = useNavigate();
-  const { playSound, soundEnabled, spellEnabled, speakSpelling, setActiveCategoryForModelLoading } = useFlashcards();
+  const { soundEnabled, spellEnabled, speakSpelling, setActiveCategoryForModelLoading } = useFlashcards();
   const { getCategoryById, getFlashcardById, getFlashcardsByCategory } = useAdmin();
   
   const category = categoryId ? getCategoryById(categoryId) : undefined;
@@ -189,7 +189,11 @@ const FlashcardSingle: React.FC = () => {
           
           <button
             className="single-audio-button spell-button"
-            onClick={() => speakSpelling(flashcard.title)}
+            onClick={() => {
+              if (flashcard && soundEnabled && spellEnabled) {
+                speakSpelling(flashcard.title);
+              }
+            }}
             disabled={!soundEnabled}
             style={{ '--category-color': category.color } as React.CSSProperties}
             title="Spell out the word"

@@ -519,7 +519,11 @@ const Flashcards: React.FC = () => {
                             
                             <button
                               className="detected-action-button spell-button"
-                              onClick={() => speakSpelling(detectedFlashcard.title)}
+                              onClick={() => {
+                                if (detectedFlashcard && soundEnabled && spellEnabled) {
+                                  speakSpelling(detectedFlashcard.title);
+                                }
+                              }}
                               disabled={!soundEnabled}
                               title="Spell out the word"
                             >

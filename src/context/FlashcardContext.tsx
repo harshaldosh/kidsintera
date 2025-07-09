@@ -458,12 +458,7 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const speakSpelling = (word: string) => {
     if (!soundEnabled || !spellEnabled) return;
     
-    // Find the flashcard to get the spelling
-    const flashcard = flashcards.find(card => 
-      card.title.toLowerCase() === word.toLowerCase()
-    );
-    
-    const spelling = flashcard?.spelling || word.split('').join('-');
+    if (!word) return;
     
     if ('speechSynthesis' in window) {
       // First say the word normally
@@ -472,11 +467,15 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       wordUtterance.pitch = 1.1;
       wordUtterance.volume = 0.8;
       
-      // Then spell it out using the flashcard's spelling
-      const spellingUtterance = new SpeechSynthesisUtterance(spelling);
+      // Then spell it out letter by letter with pauses
+      const letters = word.split('').join(' - ');
+      const spellingUtterance = new SpeechSynthesisUtterance(letters);
       spellingUtterance.rate = 0.6;
       spellingUtterance.pitch = 1.0;
       spellingUtterance.volume = 0.8;
+      
+      // Cancel any ongoing speech
+      speechSynthesis.cancel();
       
       speechSynthesis.speak(wordUtterance);
       
@@ -484,6 +483,8 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setTimeout(() => {
         speechSynthesis.speak(spellingUtterance);
       }, (word.length * 100) + 500);
+    } else {
+      console.log('Speech synthesis not supported');
     }
   };
 

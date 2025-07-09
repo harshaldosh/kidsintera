@@ -148,7 +148,11 @@ const FlashcardCategory: React.FC = () => {
               
               <button
                 className="audio-control-button spell-button"
-                onClick={() => speakSpelling(flashcard.title)}
+                onClick={() => {
+                  if (soundEnabled && spellEnabled) {
+                    speakSpelling(flashcard.title);
+                  }
+                }}
                 disabled={!soundEnabled}
                 title="Spell out the word"
               >
