@@ -3,11 +3,13 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useFlashcards } from '../context/FlashcardContext';
 import { useAdmin } from '../context/AdminContext';
-import { ArrowLeft, Play, Volume2, Type } from 'lucide-react';
+import { ArrowLeft, Play, Volume2, Type, Copy, Check, Link as LinkIcon } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './Flashcards.css';
 
 const FlashcardCategory: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const [urlCopied, setUrlCopied] = useState(false);
   const { soundEnabled, spellEnabled, speakSpelling, setActiveCategoryForModelLoading } = useFlashcards();
   const { getCategoryById, getFlashcardsByCategory } = useAdmin();
   
@@ -89,6 +91,27 @@ const FlashcardCategory: React.FC = () => {
     }
   };
 
+  const handleCopyUrl = async () => {
+    const currentUrl = window.location.href;
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      setUrlCopied(true);
+      toast.success('Category URL copied to clipboard!');
+      setTimeout(() => setUrlCopied(false), 2000);
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = currentUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setUrlCopied(true);
+      toast.success('Category URL copied to clipboard!');
+      setTimeout(() => setUrlCopied(false), 2000);
+    }
+  };
+
   return (
     <div className="flashcards-page responsive-container">
       <div className="flashcards-header">
@@ -101,6 +124,21 @@ const FlashcardCategory: React.FC = () => {
           {category.icon} {category.name}
         </h1>
         <p className="flashcards-subtitle">{category.description}</p>
+        
+        <div className="category-url-section">
+          <div className="url-display">
+            <LinkIcon size={16} />
+            <span className="url-text">{window.location.href}</span>
+            <button
+              className={`copy-url-button ${urlCopied ? 'copied' : ''}`}
+              onClick={handleCopyUrl}
+              title="Copy Category URL"
+            >
+              {urlCopied ? <Check size={16} /> : <Copy size={16} />}
+            </button>
+          </div>
+          <p className="url-help">Share this category URL or generate a QR code for easy access</p>
+        </div>
       </div>
 
       <div className="flashcard-grid responsive-grid">

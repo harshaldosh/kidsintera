@@ -2,12 +2,14 @@ import React, { useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useFlashcards } from '../context/FlashcardContext';
 import { useAdmin } from '../context/AdminContext';
-import { ArrowLeft, Play, SkipForward, SkipBack, Grid, Volume2, Type } from 'lucide-react';
+import { ArrowLeft, Play, SkipForward, SkipBack, Grid, Volume2, Type, Copy, Check, Link as LinkIcon } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './Flashcards.css';
 
 const FlashcardSingle: React.FC = () => {
   const { categoryId, flashcardId } = useParams<{ categoryId: string; flashcardId: string }>();
   const navigate = useNavigate();
+  const [urlCopied, setUrlCopied] = useState(false);
   const { soundEnabled, spellEnabled, speakSpelling, setActiveCategoryForModelLoading } = useFlashcards();
   const { getCategoryById, getFlashcardById, getFlashcardsByCategory } = useAdmin();
   
@@ -105,6 +107,27 @@ const FlashcardSingle: React.FC = () => {
     }
   };
 
+  const handleCopyUrl = async () => {
+    const currentUrl = window.location.href;
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      setUrlCopied(true);
+      toast.success('URL copied to clipboard!');
+      setTimeout(() => setUrlCopied(false), 2000);
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = currentUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setUrlCopied(true);
+      toast.success('URL copied to clipboard!');
+      setTimeout(() => setUrlCopied(false), 2000);
+    }
+  };
+
   const handleNext = () => {
     if (nextCard) {
       navigate(`/flashcards/${categoryId}/${nextCard.id}`);
@@ -164,6 +187,21 @@ const FlashcardSingle: React.FC = () => {
         />
         
         <h2 className="single-flashcard-title">{flashcard.title}</h2>
+        
+        <div className="flashcard-url-section">
+          <div className="url-display">
+            <LinkIcon size={16} />
+            <span className="url-text">{window.location.href}</span>
+            <button
+              className={`copy-url-button ${urlCopied ? 'copied' : ''}`}
+              onClick={handleCopyUrl}
+              title="Copy URL"
+            >
+              {urlCopied ? <Check size={16} /> : <Copy size={16} />}
+            </button>
+          </div>
+          <p className="url-help">Share this URL or generate a QR code for easy access</p>
+        </div>
         
         {flashcard.description && (
           <p className="single-flashcard-description">{flashcard.description}</p>
