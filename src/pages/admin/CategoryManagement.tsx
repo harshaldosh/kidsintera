@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import { FlashcardCategory } from '../../types';
-import { Plus, Edit, Trash2, Layers, Palette, Users, Globe, Copy, Check, ExternalLink } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Plus, Edit, Trash2, Layers, Palette, Users, Globe } from 'lucide-react';
 import './CategoryManagement.css';
 
 const CategoryManagement: React.FC = () => {
   const { categories, addCategory, updateCategory, deleteCategory, getFlashcardsByCategory } = useAdmin();
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<FlashcardCategory | null>(null);
-  const [copiedUrls, setCopiedUrls] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -78,44 +76,6 @@ const CategoryManagement: React.FC = () => {
     }
   };
 
-  const handleCopyCategoryUrl = async (category: FlashcardCategory) => {
-    const url = `${window.location.origin}/flashcards/${category.id}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedUrls(prev => new Set(prev).add(category.id));
-      toast.success('Category URL copied to clipboard!');
-      setTimeout(() => {
-        setCopiedUrls(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(category.id);
-          return newSet;
-        });
-      }, 2000);
-    } catch (error) {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = url;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setCopiedUrls(prev => new Set(prev).add(category.id));
-      toast.success('Category URL copied to clipboard!');
-      setTimeout(() => {
-        setCopiedUrls(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(category.id);
-          return newSet;
-        });
-      }, 2000);
-    }
-  };
-
-  const handleViewCategory = (category: FlashcardCategory) => {
-    const url = `/flashcards/${category.id}`;
-    window.open(url, '_blank');
-  };
-
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString();
   };
@@ -145,20 +105,6 @@ const CategoryManagement: React.FC = () => {
               <div className="category-header">
                 <div className="category-icon-large">{category.icon}</div>
                 <div className="category-actions">
-                  <button
-                    className="category-action-button"
-                    onClick={() => handleViewCategory(category)}
-                    title="View Category"
-                  >
-                    <ExternalLink size={16} />
-                  </button>
-                  <button
-                    className={`category-action-button ${copiedUrls.has(category.id) ? 'copied' : ''}`}
-                    onClick={() => handleCopyCategoryUrl(category)}
-                    title="Copy Category URL"
-                  >
-                    {copiedUrls.has(category.id) ? <Check size={16} /> : <Copy size={16} />}
-                  </button>
                   <button
                     className="category-action-button"
                     onClick={() => handleEditCategory(category)}

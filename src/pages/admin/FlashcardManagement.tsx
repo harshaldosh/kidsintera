@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import { Flashcard } from '../../types';
-import { Plus, Edit, Trash2, BookOpen, Image, Volume2, Eye, Copy, Check, Link as LinkIcon, ExternalLink } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Plus, Edit, Trash2, BookOpen, Image, Volume2, Eye } from 'lucide-react';
 import './FlashcardManagement.css';
 
 const FlashcardManagement: React.FC = () => {
@@ -10,7 +9,6 @@ const FlashcardManagement: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [copiedUrls, setCopiedUrls] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     categoryId: '',
     title: '',
@@ -88,44 +86,6 @@ const FlashcardManagement: React.FC = () => {
 
   const generateSpelling = (word: string) => {
     return word.toLowerCase().split('').join('-');
-  };
-
-  const handleCopyFlashcardUrl = async (flashcard: Flashcard) => {
-    const url = `${window.location.origin}/flashcards/${flashcard.categoryId}/${flashcard.id}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedUrls(prev => new Set(prev).add(flashcard.id));
-      toast.success('Flashcard URL copied to clipboard!');
-      setTimeout(() => {
-        setCopiedUrls(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(flashcard.id);
-          return newSet;
-        });
-      }, 2000);
-    } catch (error) {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = url;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setCopiedUrls(prev => new Set(prev).add(flashcard.id));
-      toast.success('Flashcard URL copied to clipboard!');
-      setTimeout(() => {
-        setCopiedUrls(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(flashcard.id);
-          return newSet;
-        });
-      }, 2000);
-    }
-  };
-
-  const handleViewFlashcard = (flashcard: Flashcard) => {
-    const url = `/flashcards/${flashcard.categoryId}/${flashcard.id}`;
-    window.open(url, '_blank');
   };
 
   const handleTitleChange = (title: string) => {
@@ -211,20 +171,6 @@ const FlashcardManagement: React.FC = () => {
                 </div>
 
                 <div className="flashcard-actions">
-                  <button
-                    className="flashcard-action-button"
-                    onClick={() => handleViewFlashcard(flashcard)}
-                    title="View Flashcard"
-                  >
-                    <ExternalLink size={16} />
-                  </button>
-                  <button
-                    className={`flashcard-action-button ${copiedUrls.has(flashcard.id) ? 'copied' : ''}`}
-                    onClick={() => handleCopyFlashcardUrl(flashcard)}
-                    title="Copy Flashcard URL"
-                  >
-                    {copiedUrls.has(flashcard.id) ? <Check size={16} /> : <Copy size={16} />}
-                  </button>
                   <button
                     className="flashcard-action-button"
                     onClick={() => handleEditFlashcard(flashcard)}
