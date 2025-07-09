@@ -102,6 +102,7 @@ export interface FlashcardCategory {
   color: string;
   icon: string;
   ageGroup: string;
+  modelUrl?: string; // Optional URL for category-specific fine-tuned model
   createdAt: number;
 }
 
@@ -113,6 +114,7 @@ export interface Flashcard {
   imageUrl: string;
   soundUrl: string;
   pronunciation?: string;
+  spelling: string; // Phonetic spelling for the word (e.g., "c-a-t" for "cat")
   difficulty: 'easy' | 'medium' | 'hard';
   createdAt: number;
 }

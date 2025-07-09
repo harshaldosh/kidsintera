@@ -1,13 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useFlashcards } from '../context/FlashcardContext';
+import { useAdmin } from '../context/AdminContext';
 import { ArrowLeft, Play, Settings, Volume2, VolumeX, Type, TypeIcon, Camera, CameraOff, Eye, EyeOff, Video, RotateCcw, FileText, QrCode } from 'lucide-react';
 import './Flashcards.css';
 
 const Flashcards: React.FC = () => {
   const { 
-    categories, 
-    getFlashcardsByCategory,
     soundEnabled,
     spellEnabled,
     cameraDetectionEnabled,
@@ -27,8 +26,11 @@ const Flashcards: React.FC = () => {
     modelLoading,
     cameraFeedElement,
     detectedText,
-    detectedQRCodes
+    detectedQRCodes,
+    currentActiveCategoryModelUrl
   } = useFlashcards();
+  
+  const { categories, getFlashcardsByCategory } = useAdmin();
 
   return (
     <div className="flashcards-page">

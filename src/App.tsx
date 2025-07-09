@@ -25,6 +25,8 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import PlanManagement from './pages/admin/PlanManagement';
 import CouponManagement from './pages/admin/CouponManagement';
+import CategoryManagement from './pages/admin/CategoryManagement';
+import FlashcardManagement from './pages/admin/FlashcardManagement';
 import Flashcards from './pages/Flashcards';
 import FlashcardCategory from './pages/FlashcardCategory';
 import FlashcardSingle from './pages/FlashcardSingle';
@@ -76,6 +78,20 @@ const AppRoutes: React.FC = () => {
         <AdminRoute>
           <AdminLayout>
             <CouponManagement />
+          </AdminLayout>
+        </AdminRoute>
+      } />
+      <Route path="/admin/categories" element={
+        <AdminRoute>
+          <AdminLayout>
+            <CategoryManagement />
+          </AdminLayout>
+        </AdminRoute>
+      } />
+      <Route path="/admin/flashcards" element={
+        <AdminRoute>
+          <AdminLayout>
+            <FlashcardManagement />
           </AdminLayout>
         </AdminRoute>
       } />

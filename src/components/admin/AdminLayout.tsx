@@ -5,6 +5,8 @@ import {
   Users, 
   CreditCard, 
   Tag, 
+  BookOpen,
+  Layers,
   Settings, 
   Menu, 
   X, 
@@ -35,6 +37,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     if (path === '/admin/users') return 'User Management';
     if (path === '/admin/plans') return 'Plan Management';
     if (path === '/admin/coupons') return 'Coupon Management';
+    if (path === '/admin/categories') return 'Category Management';
+    if (path === '/admin/flashcards') return 'Flashcard Management';
     if (path === '/admin/settings') return 'Admin Settings';
     
     return 'Admin Dashboard';
@@ -92,6 +96,22 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           >
             <Tag size={20} />
             <span>Coupons</span>
+          </Link>
+          
+          <Link 
+            to="/admin/categories" 
+            className={`admin-nav-link ${location.pathname === '/admin/categories' ? 'active' : ''}`}
+          >
+            <Layers size={20} />
+            <span>Categories</span>
+          </Link>
+          
+          <Link 
+            to="/admin/flashcards" 
+            className={`admin-nav-link ${location.pathname === '/admin/flashcards' ? 'active' : ''}`}
+          >
+            <BookOpen size={20} />
+            <span>Flashcards</span>
           </Link>
           
           <Link 

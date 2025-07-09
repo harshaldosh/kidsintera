@@ -1,16 +1,30 @@
 import React from 'react';
+import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useFlashcards } from '../context/FlashcardContext';
+import { useAdmin } from '../context/AdminContext';
 import { ArrowLeft, Play } from 'lucide-react';
 import './Flashcards.css';
 
 const FlashcardCategory: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
-  const { getCategoryById, getFlashcardsByCategory, playSound, soundEnabled, spellEnabled, speakSpelling } = useFlashcards();
+  const { playSound, soundEnabled, spellEnabled, speakSpelling, setActiveCategoryForModelLoading } = useFlashcards();
+  const { getCategoryById, getFlashcardsByCategory } = useAdmin();
   
   const category = categoryId ? getCategoryById(categoryId) : undefined;
   const flashcards = categoryId ? getFlashcardsByCategory(categoryId) : [];
 
+  // Set the active category for model loading when component mounts
+  useEffect(() => {
+    if (categoryId) {
+      setActiveCategoryForModelLoading(categoryId);
+    }
+    
+    // Cleanup when component unmounts
+    return () => {
+      setActiveCategoryForModelLoading(null);
+    };
+  }, [categoryId, setActiveCategoryForModelLoading]);
   if (!category) {
     return (
       <div className="flashcards-page">

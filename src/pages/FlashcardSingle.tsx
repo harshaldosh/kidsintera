@@ -1,13 +1,15 @@
 import React, { useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useFlashcards } from '../context/FlashcardContext';
+import { useAdmin } from '../context/AdminContext';
 import { ArrowLeft, Play, SkipForward, SkipBack, Grid } from 'lucide-react';
 import './Flashcards.css';
 
 const FlashcardSingle: React.FC = () => {
   const { categoryId, flashcardId } = useParams<{ categoryId: string; flashcardId: string }>();
   const navigate = useNavigate();
-  const { getCategoryById, getFlashcardById, getFlashcardsByCategory, playSound, soundEnabled, spellEnabled, speakSpelling } = useFlashcards();
+  const { playSound, soundEnabled, spellEnabled, speakSpelling, setActiveCategoryForModelLoading } = useFlashcards();
+  const { getCategoryById, getFlashcardById, getFlashcardsByCategory } = useAdmin();
   
   const category = categoryId ? getCategoryById(categoryId) : undefined;
   const flashcard = flashcardId ? getFlashcardById(flashcardId) : undefined;
@@ -17,6 +19,17 @@ const FlashcardSingle: React.FC = () => {
   const nextCard = allFlashcards[currentIndex + 1];
   const prevCard = allFlashcards[currentIndex - 1];
 
+  // Set the active category for model loading when component mounts
+  useEffect(() => {
+    if (categoryId) {
+      setActiveCategoryForModelLoading(categoryId);
+    }
+    
+    // Cleanup when component unmounts
+    return () => {
+      setActiveCategoryForModelLoading(null);
+    };
+  }, [categoryId, setActiveCategoryForModelLoading]);
   // Auto-play sound when flashcard loads
   useEffect(() => {
     if (flashcard && soundEnabled) {
