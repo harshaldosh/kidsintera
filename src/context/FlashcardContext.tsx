@@ -400,12 +400,58 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Create audio element and play sound
       const audio = new Audio(soundUrl);
       audio.volume = 0.7;
-      audio.play().catch(error => {
-        console.log('Sound playback failed:', error);
-        // Audio fallback will be handled by the calling component
+      
+      // Add event listeners for better error handling
+      audio.addEventListener('canplaythrough', () => {
+        audio.play().catch(error => {
+          console.log('Audio file not found, using text-to-speech fallback:', error);
+          // Fallback to text-to-speech if audio file doesn't exist
+          if ('speechSynthesis' in window) {
+            // Extract word from sound URL (e.g., "/sounds/cat-meow.mp3" -> "cat")
+            const wordMatch = soundUrl.match(/\/sounds\/([^-]+)/);
+            const word = wordMatch ? wordMatch[1] : 'word';
+            
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.rate = 0.8;
+            utterance.pitch = 1.1;
+            utterance.volume = 0.8;
+            speechSynthesis.speak(utterance);
+          }
+        });
       });
+      
+      audio.addEventListener('error', (error) => {
+        console.log('Audio loading error, using text-to-speech fallback:', error);
+        // Fallback to text-to-speech if audio file doesn't exist
+        if ('speechSynthesis' in window) {
+          // Extract word from sound URL (e.g., "/sounds/cat-meow.mp3" -> "cat")
+          const wordMatch = soundUrl.match(/\/sounds\/([^-]+)/);
+          const word = wordMatch ? wordMatch[1] : 'word';
+          
+          const utterance = new SpeechSynthesisUtterance(word);
+          utterance.rate = 0.8;
+          utterance.pitch = 1.1;
+          utterance.volume = 0.8;
+          speechSynthesis.speak(utterance);
+        }
+      });
+      
+      // Try to load the audio
+      audio.load();
     } catch (error) {
       console.log('Audio creation failed:', error);
+      // Fallback to text-to-speech if audio creation fails
+      if ('speechSynthesis' in window) {
+        // Extract word from sound URL (e.g., "/sounds/cat-meow.mp3" -> "cat")
+        const wordMatch = soundUrl.match(/\/sounds\/([^-]+)/);
+        const word = wordMatch ? wordMatch[1] : 'word';
+        
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.rate = 0.8;
+        utterance.pitch = 1.1;
+        utterance.volume = 0.8;
+        speechSynthesis.speak(utterance);
+      }
     }
   };
 

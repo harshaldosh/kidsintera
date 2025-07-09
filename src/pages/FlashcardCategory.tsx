@@ -42,15 +42,16 @@ const FlashcardCategory: React.FC = () => {
   const handlePlaySound = (soundUrl: string, title: string) => {
     if (!soundEnabled) return;
     
-    if (spellEnabled) {
-      speakSpelling(title);
-    } else {
-      try {
-        // Try to play the audio file first
-        const audio = new Audio(soundUrl);
-        audio.volume = 0.7;
-        audio.play().catch(() => {
-          // If audio fails, use text-to-speech with the actual title
+    try {
+      // Create audio element and play sound
+      const audio = new Audio(soundUrl);
+      audio.volume = 0.7;
+      
+      // Add event listeners for better error handling
+      audio.addEventListener('canplaythrough', () => {
+        audio.play().catch(error => {
+          console.log('Audio file not found, using text-to-speech fallback:', error);
+          // Fallback to text-to-speech if audio file doesn't exist
           if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(title);
             utterance.rate = 0.8;
@@ -59,8 +60,11 @@ const FlashcardCategory: React.FC = () => {
             speechSynthesis.speak(utterance);
           }
         });
-      } catch (error) {
-        // Fallback to text-to-speech if audio creation fails
+      });
+      
+      audio.addEventListener('error', (error) => {
+        console.log('Audio loading error, using text-to-speech fallback:', error);
+        // Fallback to text-to-speech if audio file doesn't exist
         if ('speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(title);
           utterance.rate = 0.8;
@@ -68,6 +72,19 @@ const FlashcardCategory: React.FC = () => {
           utterance.volume = 0.8;
           speechSynthesis.speak(utterance);
         }
+      });
+      
+      // Try to load the audio
+      audio.load();
+    } catch (error) {
+      console.log('Audio creation failed, using text-to-speech fallback:', error);
+      // Fallback to text-to-speech if audio creation fails
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(title);
+        utterance.rate = 0.8;
+        utterance.pitch = 1.1;
+        utterance.volume = 0.8;
+        speechSynthesis.speak(utterance);
       }
     }
   };
