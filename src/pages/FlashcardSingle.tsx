@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useFlashcards } from '../context/FlashcardContext';
 import { useAdmin } from '../context/AdminContext';
-import { ArrowLeft, Play, SkipForward, SkipBack, Grid } from 'lucide-react';
+import { ArrowLeft, Play, SkipForward, SkipBack, Grid, Volume2, Type } from 'lucide-react';
 import './Flashcards.css';
 
 const FlashcardSingle: React.FC = () => {
@@ -158,16 +158,29 @@ const FlashcardSingle: React.FC = () => {
           </div>
         )}
         
-        {soundEnabled && (
+        <div className="single-audio-controls">
           <button
-            className="single-play-button"
+            className="single-audio-button"
             onClick={handlePlaySound}
+            disabled={!soundEnabled}
             style={{ '--category-color': category.color } as React.CSSProperties}
+            title="Play word sound"
           >
-            <Play size={24} />
-            {spellEnabled ? 'Spell Word' : 'Play Sound'}
+            <Volume2 size={20} />
+            Play Sound
           </button>
-        )}
+          
+          <button
+            className="single-audio-button spell-button"
+            onClick={() => speakSpelling(flashcard.title)}
+            disabled={!soundEnabled}
+            style={{ '--category-color': category.color } as React.CSSProperties}
+            title="Spell out the word"
+          >
+            <Type size={20} />
+            Spell Word
+          </button>
+        </div>
         
         <div className="navigation-buttons">
           {prevCard && (

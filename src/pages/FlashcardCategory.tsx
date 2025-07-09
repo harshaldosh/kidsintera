@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useFlashcards } from '../context/FlashcardContext';
 import { useAdmin } from '../context/AdminContext';
-import { ArrowLeft, Play } from 'lucide-react';
+import { ArrowLeft, Play, Volume2, Type } from 'lucide-react';
 import './Flashcards.css';
 
 const FlashcardCategory: React.FC = () => {
@@ -117,16 +117,28 @@ const FlashcardCategory: React.FC = () => {
               </div>
             )}
             
-            {soundEnabled && (
+            <div className="flashcard-audio-controls">
               <button
-                className="play-button"
+                className="audio-control-button"
                 onClick={() => handlePlaySound(flashcard.soundUrl, flashcard.title)}
+                disabled={!soundEnabled}
                 style={{ '--category-color': category.color } as React.CSSProperties}
+                title="Play word sound"
               >
-                <Play size={20} />
-                {spellEnabled ? 'Spell Word' : 'Play Sound'}
+                <Volume2 size={16} />
+                Sound
               </button>
-            )}
+              
+              <button
+                className="audio-control-button spell-button"
+                onClick={() => speakSpelling(flashcard.title)}
+                disabled={!soundEnabled}
+                title="Spell out the word"
+              >
+                <Type size={16} />
+                Spell
+              </button>
+            </div>
           </div>
         ))}
       </div>

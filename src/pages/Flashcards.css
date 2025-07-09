@@ -220,6 +220,61 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+.flashcard-audio-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.audio-control-button {
+  flex: 1;
+  background: linear-gradient(135deg, var(--category-color), color-mix(in srgb, var(--category-color) 80%, black));
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.audio-control-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.25);
+}
+
+.audio-control-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.audio-control-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.audio-control-button:disabled:hover {
+  transform: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.audio-control-button.spell-button {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+}
+
+.audio-control-button.spell-button:hover {
+  box-shadow: 0 5px 14px rgba(139, 92, 246, 0.4);
+}
+
 .single-flashcard-container {
   max-width: 600px;
   margin: 0 auto;
@@ -288,6 +343,60 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
+.single-audio-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.single-audio-button {
+  background: linear-gradient(135deg, var(--category-color), color-mix(in srgb, var(--category-color) 80%, black));
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
+}
+
+.single-audio-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 22px rgba(0, 0, 0, 0.25);
+}
+
+.single-audio-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.single-audio-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
+}
+
+.single-audio-button:disabled:hover {
+  transform: none;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
+}
+
+.single-audio-button.spell-button {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 5px 18px rgba(139, 92, 246, 0.3);
+}
+
+.single-audio-button.spell-button:hover {
+  box-shadow: 0 7px 22px rgba(139, 92, 246, 0.4);
+}
+
 .navigation-buttons {
   display: flex;
   gap: 16px;
@@ -338,6 +447,11 @@
     font-size: 2rem;
   }
   
+  .single-audio-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+  
   .navigation-buttons {
     flex-direction: column;
     align-items: center;
@@ -345,6 +459,10 @@
   
   .settings-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .flashcard-audio-controls {
+    flex-direction: column;
   }
   
   .camera-controls {
