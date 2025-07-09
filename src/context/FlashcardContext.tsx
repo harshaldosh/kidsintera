@@ -264,6 +264,13 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         // Fallback to mock detection if model fails to load
         return [];
       }
+      modelRef.current = model;
+    }
+
+    // Double-check that model is still available after loading
+    if (!modelRef.current) {
+      console.error('Model is still null after loading attempt');
+      return [];
     }
 
     try {
@@ -292,6 +299,12 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const detectText = async (videoElement: HTMLVideoElement): Promise<string[]> => {
     if (!ocrEnabled) return [];
     
+    // Check if video dimensions are valid
+    if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+      console.log('Video dimensions are zero, skipping OCR');
+      return [];
+    }
+    
     try {
       // Create a canvas to capture the current frame
       const canvas = document.createElement('canvas');
@@ -304,6 +317,12 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       
       // Convert canvas to blob for Tesseract
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      
+      // Check if image data is valid
+      if (!imageData || imageData.data.length === 0) {
+        console.log('Invalid image data, skipping OCR');
+        return [];
+      }
       
       const result = await Tesseract.recognize(imageData, 'eng', {
         logger: () => {} // Disable logging
@@ -336,6 +355,12 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // QR Code detection
   const detectQRCodes = async (videoElement: HTMLVideoElement): Promise<string[]> => {
     if (!qrCodeEnabled) return [];
+    
+    // Check if video dimensions are valid
+    if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+      console.log('Video dimensions are zero, skipping QR code detection');
+      return [];
+    }
     
     try {
       const result = await QrScanner.scanImage(videoElement, {
@@ -478,11 +503,25 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
       
       // Load the appropriate model first if not already loaded
-      if (!modelRef.current && !modelLoading) {
+      const loadedModel = await loadModel(modelUrl);
+      if (!loadedModel) {
+        console.error('Failed to load model, aborting camera detection');
+        setIsDetecting(false);
+        toast.error('Failed to load AI model. Camera detection cannot start.');
+        return;
+      }
+      
+      modelRef.current = loadedModel;
+      
+      // Additional check after model loading
+      if (!modelRef.current) {
         if (!modelUrl) {
           toast.loading('Loading AI model, please wait...');
         }
-        await loadModel(modelUrl);
+        console.error('Model is still null after loading, aborting camera detection');
+        setIsDetecting(false);
+        toast.error('AI model failed to initialize. Please try again.');
+        return;
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ 
