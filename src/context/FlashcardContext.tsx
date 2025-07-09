@@ -315,16 +315,8 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       canvas.height = videoElement.videoHeight;
       ctx.drawImage(videoElement, 0, 0);
       
-      // Convert canvas to blob for Tesseract
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      
-      // Check if image data is valid
-      if (!imageData || imageData.data.length === 0) {
-        console.log('Invalid image data, skipping OCR');
-        return [];
-      }
-      
-      const result = await Tesseract.recognize(imageData, 'eng', {
+      // Use canvas directly with Tesseract
+      const result = await Tesseract.recognize(canvas, 'eng', {
         logger: () => {} // Disable logging
       });
       
