@@ -536,7 +536,7 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const category = getCategoryById(categoryId);
         modelUrl = category?.modelUrl;
         if (modelUrl) {
-          toast.loading(`Loading specialized model for ${category.name}...`);
+          toast.success(`Loading specialized model for ${category.name}...`);
         }
       }
       
@@ -574,7 +574,8 @@ export const FlashcardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsDetecting(true);
       
       const modelType = currentActiveCategoryModelUrl ? 'specialized' : 'general';
-      toast.success(`Camera detection started with ${modelType} AI model!`);
+      const categoryName = categoryId ? getCategoryById(categoryId)?.name : 'all categories';
+      toast.success(`Camera detection started for ${categoryName} with ${modelType} AI model!`);
 
       // Create video element for detection
       if (!videoRef.current) {

@@ -8,7 +8,7 @@ import './Flashcards.css';
 
 const FlashcardCategory: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
-  const { playSound, soundEnabled, spellEnabled, speakSpelling, setActiveCategoryForModelLoading } = useFlashcards();
+  const { soundEnabled, spellEnabled, speakSpelling, setActiveCategoryForModelLoading } = useFlashcards();
   const { getCategoryById, getFlashcardsByCategory } = useAdmin();
   
   const category = categoryId ? getCategoryById(categoryId) : undefined;
@@ -90,7 +90,7 @@ const FlashcardCategory: React.FC = () => {
   };
 
   return (
-    <div className="flashcards-page">
+    <div className="flashcards-page responsive-container">
       <div className="flashcards-header">
         <Link to="/flashcards" className="back-button">
           <ArrowLeft size={20} />
@@ -103,7 +103,7 @@ const FlashcardCategory: React.FC = () => {
         <p className="flashcards-subtitle">{category.description}</p>
       </div>
 
-      <div className="flashcard-grid">
+      <div className="flashcard-grid responsive-grid">
         {flashcards.map(flashcard => (
           <div
             key={flashcard.id}

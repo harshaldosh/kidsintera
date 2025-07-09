@@ -220,6 +220,261 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Mode Selection */
+.mode-selection {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 32px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.mode-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: #1f2937;
+}
+
+.mode-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mode-button {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 32px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 200px;
+  justify-content: center;
+}
+
+.mode-button:hover {
+  border-color: #f59e0b;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(245, 158, 11, 0.2);
+}
+
+.mode-button.active {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
+.mode-button span {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.mode-button p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.mode-button.active span {
+  color: #92400e;
+}
+
+.mode-button.active p {
+  color: #a16207;
+}
+
+/* Camera Mode Styles */
+.camera-mode-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.camera-settings-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.camera-category-selection {
+  margin-bottom: 24px;
+  padding: 20px;
+  background-color: #f9fafb;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.camera-category-selection label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.category-select {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 2px solid #d1d5db;
+  background-color: white;
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  margin-bottom: 8px;
+}
+
+.category-select:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  outline: none;
+}
+
+.category-help {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.camera-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.detected-flashcard-container {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid #10b981;
+}
+
+.detected-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.detected-flashcard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.detected-flashcard-image {
+  width: 100%;
+  max-width: 200px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.detected-flashcard-content {
+  width: 100%;
+}
+
+.detected-flashcard-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #1f2937;
+}
+
+.detected-flashcard-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.detected-flashcard-pronunciation {
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 auto 16px;
+  display: inline-block;
+  font-family: 'Courier New', monospace;
+}
+
+.detected-flashcard-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.detected-action-button {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+}
+
+.detected-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(16, 185, 129, 0.4);
+}
+
+.detected-action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+}
+
+.detected-action-button.spell-button {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+}
+
+.detected-action-button.spell-button:hover {
+  box-shadow: 0 5px 14px rgba(139, 92, 246, 0.4);
+}
+
+.detected-action-button.view-button {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.3);
+}
+
+.detected-action-button.view-button:hover {
+  box-shadow: 0 5px 14px rgba(245, 158, 11, 0.4);
+}
+
 .flashcard-audio-controls {
   display: flex;
   gap: 8px;
@@ -424,6 +679,23 @@
   transform: translateY(-2px);
 }
 
+/* Responsive Design */
+.responsive-container {
+  padding: 16px;
+}
+
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.responsive-single-card {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+}
+
 @media screen and (max-width: 768px) {
   .flashcards-page {
     padding: 16px;
@@ -431,6 +703,15 @@
   
   .flashcards-title {
     font-size: 2rem;
+  }
+  
+  .mode-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .mode-button {
+    min-height: 160px;
+    padding: 24px 20px;
   }
   
   .categories-grid,
@@ -468,6 +749,63 @@
   .camera-controls {
     flex-direction: column;
     align-items: stretch;
+  }
+  
+  .camera-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .camera-category-selection {
+    padding: 16px;
+  }
+  
+  .detected-flashcard-actions {
+    flex-direction: column;
+  }
+  
+  .responsive-container {
+    padding: 12px;
+  }
+  
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .responsive-single-card {
+    padding: 16px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .flashcards-title {
+    font-size: 1.75rem;
+  }
+  
+  .mode-button {
+    min-height: 140px;
+    padding: 20px 16px;
+  }
+  
+  .mode-button span {
+    font-size: 1.125rem;
+  }
+  
+  .camera-settings-panel {
+    padding: 16px;
+  }
+  
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .camera-feed {
+    height: 200px;
+  }
+  
+  .detected-flashcard-image {
+    max-width: 150px;
+    height: 120px;
   }
 }
 .settings-panel {
