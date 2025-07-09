@@ -93,6 +93,12 @@
   color: var(--error-700);
 }
 
+.category-action-button.copied {
+  background-color: var(--success-50);
+  border-color: var(--success-200);
+  color: var(--success-700);
+}
+
 .dark-theme .category-action-button:hover {
   background-color: var(--primary-900);
   border-color: var(--primary-700);
@@ -103,6 +109,12 @@
   background-color: var(--error-900);
   border-color: var(--error-700);
   color: var(--error-300);
+}
+
+.dark-theme .category-action-button.copied {
+  background-color: var(--success-900);
+  border-color: var(--success-700);
+  color: var(--success-300);
 }
 
 .category-name {
